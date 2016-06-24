@@ -2,8 +2,9 @@ import 'babel-polyfill';
 import { EventEmitter } from 'events';
 
 export class DrayJob extends EventEmitter {
-	constructor({name, environment, input}) {
-
+	constructor(manager) {
+		super();
+		this._manager = manager;
 	}
 
 	/**
@@ -57,16 +58,17 @@ export class DrayJob extends EventEmitter {
 
 	}
 
+	setParameters(parameters) {
+		// name, environment, input
+		Object.assign(this, parameters);
+	}
+
 	addStep() {
 
 	}
 
 	submit() {
 		// TODO: Convert input to base64
-	}
-
-	update() {
-
 	}
 
 	destroy() {

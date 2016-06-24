@@ -4,7 +4,7 @@
   "description": "Node.js wrapper for managing Dray jobs",
   "main": "./dist/index.js",
   "scripts": {
-    "itest": "mocha integration/ -R spec --compilers js:babel-register",
+    "itest": "mocha integration/**/*.spec.js -R spec --compilers js:babel-register",
     "lint": "eslint -f unix src/ test/",
     "compile": "babel src -sd lib/src && babel test -sd lib/test",
     "build": "babel src -sd dist",
