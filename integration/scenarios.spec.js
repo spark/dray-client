@@ -17,7 +17,7 @@ describe('Dray client', () => {
 	describe('', () => {
 		let job1, job2;
 
-		before('start two jobs', () => {
+		before('starts two jobs', () => {
 			job1 = manager.createJob();
 			job1.addStep({source: 'scratch'});
 
@@ -33,10 +33,14 @@ describe('Dray client', () => {
 			return expect(manager.listJobs()).to.eventually.have.length.of(2);
 		});
 
-		after('clean up', () => {
+		it('removes those jobs', () => {
 			return Promise.all([
 				job1.destroy(), job2.destroy()
 			]);
+		});
+
+		it('has no more jobs', () => {
+			return expect(manager.listJobs()).to.eventually.have.length.of(0);
 		});
 	});
 });

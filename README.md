@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/spark/dray-client.svg?token=M4rP8W5QPGszZyem6TGE&branch=master)](https://travis-ci.com/spark/dray-client)
+
 ## Usage
 
 Before creating jobs, you need to initialize the job manager:
