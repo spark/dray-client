@@ -15,17 +15,28 @@ describe('Dray client', () => {
 	});
 
 	describe('', () => {
+		let job1, job2;
+
 		before('start two jobs', () => {
-			let job1 = manager.createJob();
+			job1 = manager.createJob();
 			job1.addStep({source: 'scratch'});
-			job1.submit();
-			let job2 = manager.createJob();
+
+			job2 = manager.createJob();
 			job2.addStep({source: 'scratch'});
-			job2.submit();
+
+			return Promise.all([
+				job1.submit(), job2.submit()
+			]);
 		});
 
 		it('lists jobs', () => {
 			return expect(manager.listJobs()).to.eventually.have.length.of(2);
 		});
-	})
+
+		after('clean up', () => {
+			return Promise.all([
+				job1.destroy(), job2.destroy()
+			]);
+		});
+	});
 });

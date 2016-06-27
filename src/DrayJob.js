@@ -2,18 +2,11 @@ import 'babel-polyfill';
 import { EventEmitter } from 'events';
 
 export class DrayJob extends EventEmitter {
-	constructor(manager) {
+	constructor(manager, parameters) {
 		super();
 		this._manager = manager;
-	}
-
-	/**
-	 * ID of the Dray job
-	 *
-	 * @returns {String}
-	 */
-	get id() {
-		return this._id;
+		this._steps = [];
+		this.setParameters(parameters);
 	}
 
 	/**
@@ -63,15 +56,29 @@ export class DrayJob extends EventEmitter {
 		Object.assign(this, parameters);
 	}
 
-	addStep() {
-
+	addStep(step) {
+		this._steps.push(step);
 	}
 
 	submit() {
+		this._manager.submitJob(this);
+	}
+
+	toJSON() {
+		let output = {
+			steps: this._steps
+		};
+		for (let variable of ['name', 'environment']) {
+			if (this[variable]) {
+				output[variable] = this[variable];
+			}
+		}
+
 		// TODO: Convert input to base64
+		return JSON.stringify(output);
 	}
 
 	destroy() {
-
+		this._manager.deleteJob(this);
 	}
 }
