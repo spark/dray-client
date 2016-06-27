@@ -5,7 +5,7 @@
   "main": "./dist/index.js",
   "scripts": {
     "itest": "mocha integration/**/*.spec.js -R spec --compilers js:babel-register",
-    "lint": "eslint -f unix src/ test/",
+    "lint": "eslint -f unix src/",
     "compile": "babel src -sd lib/src && babel test -sd lib/test",
     "build": "babel src -sd dist",
     "test": "mocha test/ -R spec --compilers js:babel-register",

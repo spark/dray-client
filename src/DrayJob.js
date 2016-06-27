@@ -12,7 +12,7 @@ export class DrayJob extends EventEmitter {
 	/**
 	 * Number of steps already completed
 	 *
-	 * @returns {Number}
+	 * @returns {Number}    number of completed steps
 	 * @returns {undefined} if first step hasn't finished yet
 	 */
 	get stepsCompleted() {
@@ -31,7 +31,7 @@ export class DrayJob extends EventEmitter {
 	/**
 	 * Job creation date
 	 *
-	 * @returns {Date}
+	 * @returns {Date} creation date
 	 */
 	get createdAt() {
 		return this._createdAt;
@@ -40,7 +40,7 @@ export class DrayJob extends EventEmitter {
 	/**
 	 * Job finish date.
 	 *
-	 * @returns {Date}
+	 * @returns {Date}      job finish date
 	 * @returns {undefined} if job is still running
 	 */
 	get finishedIn() {
