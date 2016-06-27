@@ -74,7 +74,9 @@ export class DrayJob extends EventEmitter {
 			}
 		}
 
-		// TODO: Convert input to base64
+		if (this.input) {
+			output.input = new Buffer(this.input).toString('base64');
+		}
 		return JSON.stringify(output);
 	}
 
