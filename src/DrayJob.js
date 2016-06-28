@@ -63,7 +63,7 @@ export class DrayJob extends EventEmitter {
 		this._steps.push(step);
 	}
 
-	submit() {
+	submit(timeout) {
 		this._promise = new Promise((resolve, reject) => {
 			this._resolve = resolve;
 			this._reject = reject;
@@ -74,6 +74,12 @@ export class DrayJob extends EventEmitter {
 		this._manager.submitJob(this).then(() => {
 			this._redis.psubscribe(`${this.id}:*`);
 		});
+
+		if (timeout) {
+			this._timout = setTimeout(() => {
+				this._onJobFailed('Job has timed out');
+			}, timeout);
+		}
 
 		return this._promise;
 	}
@@ -104,9 +110,23 @@ export class DrayJob extends EventEmitter {
 		this.emit(`${property}Changed`, data);
 	}
 
+	_onJobCompleted(value) {
+		this._resolve(value)
+	}
+
+	_onJobFailed(reason) {
+		this._reject(reason);
+		this._cleanup();
+	}
+
 	_statusChanged(newStatus) {
 		this._status = newStatus;
-		if (this._status == 'complete') this._resolve();
-		else if (this._status == 'error') this._reject();
+		if (this._status == 'complete') this._onJobCompleted();
+		else if (this._status == 'error') this._onJobFailed();
+	}
+
+	_cleanup() {
+		if (this._timeout) clearTimeout(this._timeout);
+		this._redis.quit();
 	}
 }
