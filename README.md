@@ -41,3 +41,19 @@ job.submit().then((value) => {
 	console.error("Something bad happened:", reason)
 });
 ```
+
+### Start compilation job
+```js
+import { BuildpackJob } from 'dray-client';
+let compilation = new BuildpackJob(manager);
+compilation.setFiles([
+	{name: 'foo.ino', data: new Buffer()}
+]);
+compilation.setEnvironment({
+	PLATFORM_ID: 6
+});
+compilation.setBuildpacks([
+	'particle/buildpack-wiring-preprocessor',
+	'particle/buildpack-particle-firmware:0.5.1-photon'
+]);
+```
