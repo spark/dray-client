@@ -1,4 +1,6 @@
 const chai = require('chai');
+const sinon = require('sinon');
+chai.use(require('sinon-chai'));
 chai.use(require('chai-as-promised'));
 const expect = chai.expect;
 
@@ -16,17 +18,26 @@ describe('Dray client', () => {
 
 	describe('', () => {
 		let job1, job2;
+		let stub;
 
 		before('starts two jobs', () => {
 			job1 = manager.createJob();
-			job1.addStep({source: 'scratch'});
+			job1.addStep({source: 'busybox'});
 
 			job2 = manager.createJob();
-			job2.addStep({source: 'scratch'});
+			job2.addStep({source: 'busybox'});
+
+			stub = sinon.stub();
+			job1.on('statusChanged', stub);
+			job2.on('statusChanged', stub);
 
 			return Promise.all([
 				job1.submit(), job2.submit()
 			]);
+		});
+
+		it('receives updates', function () {
+			return expect(stub).to.have.been.calledWith('complete').calledTwice;
 		});
 
 		it('lists jobs', () => {

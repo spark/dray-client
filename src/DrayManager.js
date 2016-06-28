@@ -17,14 +17,14 @@ export class DrayManager {
 	}
 
 	submitJob(job) {
-		return this._request('jobs', {post: job.toJSON()}, 'post').then((value) => {
+		return this._request('jobs', 'post', job.toJSON()).then((value) => {
 			Object.assign(job, value.res.body);
 			return job;
 		});
 	}
 
 	deleteJob(job) {
-		return this._request(`jobs/${job.id}`, null, 'del').then((value) => {
+		return this._request(`jobs/${job.id}`, 'del').then((value) => {
 			return value.res.body;
 		});
 	}
@@ -38,7 +38,7 @@ export class DrayManager {
 		});
 	}
 
-	_request(url, data={}, method='get') {
+	_request(url, method='get', data=undefined) {
 		return this._agent[method](`${this._drayUrl}/${url}`, data).end();
 	}
 }

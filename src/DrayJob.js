@@ -1,5 +1,6 @@
 import 'babel-polyfill';
 import { EventEmitter } from 'events';
+import redis from 'redis'
 
 export class DrayJob extends EventEmitter {
 	constructor(manager, parameters) {
@@ -7,6 +8,8 @@ export class DrayJob extends EventEmitter {
 		this._manager = manager;
 		this._steps = [];
 		this.setParameters(parameters);
+
+		this.on('statusChanged', this._statusChanged.bind(this))
 	}
 
 	/**
@@ -61,7 +64,18 @@ export class DrayJob extends EventEmitter {
 	}
 
 	submit() {
-		this._manager.submitJob(this);
+		this._promise = new Promise((resolve, reject) => {
+			this._resolve = resolve;
+			this._reject = reject;
+		});
+		this._redis = redis.createClient(this._manager._redisUrl);
+		this._redis.on('pmessage', this._onMessage.bind(this));
+
+		this._manager.submitJob(this).then(() => {
+			this._redis.psubscribe(`${this.id}:*`);
+		});
+
+		return this._promise;
 	}
 
 	toJSON() {
@@ -82,5 +96,17 @@ export class DrayJob extends EventEmitter {
 
 	destroy() {
 		this._manager.deleteJob(this);
+	}
+
+	_onMessage(channel, message, data) {
+		// Message is in "ID:property" format
+		let [_, property] = message.split(':');
+		this.emit(`${property}Changed`, data);
+	}
+
+	_statusChanged(newStatus) {
+		this._status = newStatus;
+		if (this._status == 'complete') this._resolve();
+		else if (this._status == 'error') this._reject();
 	}
 }
