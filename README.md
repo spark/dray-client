@@ -56,4 +56,9 @@ compilation.setBuildpacks([
 	'particle/buildpack-wiring-preprocessor',
 	'particle/buildpack-particle-firmware:0.5.1-photon'
 ]);
+compilation.submit().then((binaries) => {
+	// Do something with binaries
+}, (reason) => {
+	console.error("Compilation error:", reason)
+});
 ```
