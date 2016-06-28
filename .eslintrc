@@ -9,6 +9,7 @@
     "no-var": 2,
     "valid-jsdoc": [2, {
       "requireReturnDescription": true
-    }]
+    }],
+    "no-unused-vars": ["error", { "varsIgnorePattern": "^_$" }]
   }
 }
