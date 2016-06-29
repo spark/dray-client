@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/spark/dray-client.svg?token=M4rP8W5QPGszZyem6TGE&branch=master)](https://travis-ci.com/spark/dray-client)
+[![Build Status](https://travis-ci.com/spark/dray-client.svg?token=M4rP8W5QPGszZyem6TGE&branch=master)](https://travis-ci.com/spark/dray-client) [![Coverage Status](https://coveralls.io/repos/github/spark/dray-client/badge.svg?branch=master&t=J9lNEW)](https://coveralls.io/github/spark/dray-client?branch=master)
 
 ## Usage
 
