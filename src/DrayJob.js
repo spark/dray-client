@@ -7,6 +7,7 @@ export class DrayJob extends EventEmitter {
 		super();
 		this._manager = manager;
 		this._steps = [];
+		this._environment = {};
 		this.setParameters(parameters);
 
 		this.on('statusChanged', this._statusChanged.bind(this));
@@ -71,13 +72,27 @@ export class DrayJob extends EventEmitter {
 	}
 
 	/**
-	 * Add single job step
+	 * Set job environment shared between steps
 	 *
-	 * @param {Object} step Dray step definition
+	 * @param {Object} env Object of environment variables
+	 */
+	setEnvironment(env) {
+		Object.assign(this._environment, env);
+		return this;
+	}
+
+	/**
+	 * Add a single job step
+	 *
+	 * @param {String} source Docker image to be run
+	 * @param {Object} env (optional) Object containing environment variables for this step
+	 * @param {String} name (optional) Name of the step
+	 * @param {String} output (optional) Output channel to be captured
+	 * @param {Boolean} refresh (optional) If true, image will be pulled before
 	 * @returns {this} this object
 	 */
-	addStep(step) {
-		this._steps.push(step);
+	addStep(source, environment, name, output, refresh) {
+		this._steps.push({source, environment, name, output, refresh});
 		return this;
 	}
 
@@ -115,14 +130,25 @@ export class DrayJob extends EventEmitter {
 	 */
 	toJSON() {
 		let output = {
-			steps: this._steps
+			steps: this._steps.map((item) => {
+				// Convert environment object to Dray format
+				if (item.environment && Object.keys(item.environment).length > 0) {
+					item.environment = this._mapEnvironment(item.environment);
+				}
+				return item;
+			})
 		};
-		for (let variable of ['name', 'environment']) {
-			if (this[variable]) {
-				output[variable] = this[variable];
-			}
+
+		if (this.name) {
+			output.name = this.name;
 		}
 
+		// Convert environment object to Dray format
+		if (Object.keys(this._environment).length > 0) {
+			output.environment = this._mapEnvironment(this._environment);
+		}
+
+		// Serialize input to base64
 		if (this.input) {
 			output.input = new Buffer(this.input).toString('base64');
 		}
@@ -145,6 +171,7 @@ export class DrayJob extends EventEmitter {
 	 * @param {String} message Message contents
 	 * @param {String} data    Additional data
 	 * @returns {undefined}
+	 * @private
 	 */
 	_onMessage(channel, message, data) {
 		// Message is in "ID:property" format
@@ -175,5 +202,11 @@ export class DrayJob extends EventEmitter {
 			clearTimeout(this._timeout);
 		}
 		this._redis.quit();
+	}
+
+	_mapEnvironment(env) {
+		return Object.keys(env).map((key) => {
+			return { variable: key, value: env[key] };
+		});
 	}
 }

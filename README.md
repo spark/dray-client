@@ -18,9 +18,7 @@ let manager = new DrayManager(
 ```js
 let job = manager.createJob();
 
-job.addStep({
-	source: 'foo/bar' // Container to be run
-});
+job.addStep('foo/bar'}); // Container to be run
 
 // Fire and forget!
 job.submit();
@@ -31,9 +29,7 @@ job.submit();
 let job = manager.createJob({
 	input: 'foo' // Data passed to container
 });
-job.addStep({
-	source: 'centurylink/upper' // Container to be run
-});
+job.addStep('centurylink/upper'); // Container to be run
 // Fire and wait for promise
 job.submit().then((value) => {
 	console.log("Result:", value);
