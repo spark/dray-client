@@ -39,7 +39,7 @@ job.submit().then((value) => {
 ```js
 import { BuildpackJob } from 'dray-client';
 let compilation = new BuildpackJob(manager);
-compilation.setFiles([
+compilation.addFiles([
 	{name: 'foo.ino', data: new Buffer()}
 ]);
 compilation.setEnvironment({

@@ -16,6 +16,7 @@
     "docs": "documentation build src/index.js -g -f md -o docs/api.md"
   },
   "dependencies": {
+    "archiver": "^1.0.0",
     "async": "^2.0.0-rc.4",
     "babel-polyfill": "^6.5.0",
     "es6-promisify": "^4.0.0",
