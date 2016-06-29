@@ -82,6 +82,11 @@ export class DrayJob extends EventEmitter {
 		return this;
 	}
 
+	setInput(input) {
+		this._input = input;
+		return this;
+	}
+
 	/**
 	 * Add a single job step
 	 *
@@ -157,8 +162,8 @@ export class DrayJob extends EventEmitter {
 		}
 
 		// Serialize input to base64
-		if (this.input) {
-			output.input = new Buffer(this.input).toString('base64');
+		if (this._input) {
+			output.input = new Buffer(this._input).toString('base64');
 		}
 		return JSON.stringify(output);
 	}

@@ -18,18 +18,15 @@ let manager = new DrayManager(
 ```js
 let job = manager.createJob();
 
-job.addStep('foo/bar'}); // Container to be run
-
-// Fire and forget!
-job.submit();
+job.addStep('foo/bar') // Container to be run
+   .submit(); // Fire and forget!
 ```
 
 ### Wait for result
 ```js
-let job = manager.createJob({
-	input: 'foo' // Data passed to container
-});
-job.addStep('centurylink/upper'); // Container to be run
+let job = manager.createJob();
+job.setInput('foo') // Data passed to container
+   .addStep('centurylink/upper'); // Container to be run
 // Fire and wait for promise
 job.submit().then((value) => {
 	console.log("Result:", value);

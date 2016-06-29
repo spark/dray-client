@@ -29,10 +29,10 @@ describe('DrayJob', () => {
 
 		it('serializes full object', () => {
 			let job = new DrayJob();
-			job.setEnvironment({FOO: 'BAR'});
+			job.setEnvironment({FOO: 'BAR'})
+				 .setInput('boo');
 			job.setParameters({
 				name: 'foo',
-				input: 'boo',
 			});
 			job.addStep('scratch', {
 				BAR: 'BAZ'
