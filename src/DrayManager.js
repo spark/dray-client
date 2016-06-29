@@ -29,6 +29,11 @@ export class DrayManager {
 		});
 	}
 
+	/**
+	 * List submitted Dray jobs
+	 *
+	 * @returns {Promise} Resolves into {Array} of jobs
+	 */
 	listJobs() {
 		return this._request('jobs').then((value) => {
 			return value.res.body.map((item) => {

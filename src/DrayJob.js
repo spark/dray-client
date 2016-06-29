@@ -75,6 +75,7 @@ export class DrayJob extends EventEmitter {
 	 * Set job environment shared between steps
 	 *
 	 * @param {Object} env Object of environment variables
+	 * @returns {this} this object
 	 */
 	setEnvironment(env) {
 		Object.assign(this._environment, env);
@@ -85,7 +86,7 @@ export class DrayJob extends EventEmitter {
 	 * Add a single job step
 	 *
 	 * @param {String} source Docker image to be run
-	 * @param {Object} env (optional) Object containing environment variables for this step
+	 * @param {Object} environment (optional) Object containing environment variables for this step
 	 * @param {String} name (optional) Name of the step
 	 * @param {String} output (optional) Output channel to be captured
 	 * @param {Boolean} refresh (optional) If true, image will be pulled before
