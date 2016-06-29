@@ -104,19 +104,26 @@ export class DrayJob extends EventEmitter {
 	 * @returns {Promise} Resolved when job succeeds and rejected if fails
 	 */
 	submit(timeout) {
+		// Prepare submission promise
 		this._promise = new Promise((resolve, reject) => {
 			this._resolve = resolve;
 			this._reject = reject;
 		});
+		// Connect to Redis
 		this._redis = redis.createClient(this._manager._redisUrl);
+		// Hook onMessage handler
 		this._redis.on('pmessage', this._onMessage.bind(this));
 
+		// Submit the job...
 		this._manager.submitJob(this).then(() => {
+			// ...and once we know its ID, we can listen for change events
 			this._redis.psubscribe(`${this.id}:*`);
 		});
 
+		// If job timeout is specified
 		if (timeout) {
 			this._timout = setTimeout(() => {
+				// Fail the job when timeout reached
 				this._onJobFailed('Job has timed out');
 			}, timeout);
 		}
