@@ -12,7 +12,8 @@
     "cover": "babel-node node_modules/.bin/istanbul cover _mocha test/ --report html -- -R spec",
     "cover-es5": "node_modules/.bin/istanbul cover _mocha lib/test/ --report html -- -R spec",
     "coveralls": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec --compilers js:babel-register test/ && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
-    "prepublish": "npm run build"
+    "prepublish": "npm run build",
+    "docs": "documentation build src/index.js -g -f md -o docs/api.md"
   },
   "dependencies": {
     "async": "^2.0.0-rc.4",
@@ -37,6 +38,7 @@
     "concat-stream": "^1.5.1",
     "coveralls": "^2.11.4",
     "doctoc": "^0.15.0",
+    "documentation": "^4.0.0-beta5",
     "eslint": "^2.3.0",
     "eslint-config-particle": "^1.0.5",
     "istanbul": "1.0.0-alpha.2",
