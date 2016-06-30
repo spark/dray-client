@@ -15,10 +15,12 @@ export class BuildpackJob extends DrayJob {
 		this._files = [];
 		this._buildpacks = [];
 
-		this.setEnvironment({
-			REDIS_URL: this._manager._redisUrl,
-			REDIS_EXPIRE_IN: this._redisExpireIn
-		});
+		if (this._manager) {
+			this.setEnvironment({
+				REDIS_URL: this._manager._redisUrl,
+				REDIS_EXPIRE_IN: this._redisExpireIn
+			});
+		}
 	}
 
 	addFiles(files) {
@@ -39,11 +41,11 @@ export class BuildpackJob extends DrayJob {
 			let env = {
 				INPUT_FROM_STDIN: true,
 				ARCHIVE_OUTPUT: true
-			}
+			};
 			this.addStep(buildpack, env, undefined, '/output.tar.gz');
 		}
 
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve) => {
 			// If we have files to compile, archive them first
 			if (this._files.length > 0) {
 				return resolve(this._archiveFiles().then((archive) => {
@@ -54,7 +56,7 @@ export class BuildpackJob extends DrayJob {
 		}).then(() => {
 			// Submit this as any regular job
 			return super.submit(timeout);
-		}).then((value) => {
+		}).then(() => {
 			this.destroy();
 			// Compilation finished. Any contents of last buildpack's output
 			// should be in Redis. Just fetch and return it
@@ -63,7 +65,7 @@ export class BuildpackJob extends DrayJob {
 				client.quit();
 				return value;
 			});
-		}, (reason) => {
+		}, () => {
 			return this.getLogs().then((logs) => {
 				this.destroy();
 				// Because successful `getLogs` call resolves instead of rejecting
