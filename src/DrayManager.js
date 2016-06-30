@@ -29,6 +29,12 @@ export class DrayManager {
 		});
 	}
 
+	getJobLogs(job) {
+		return this._request(`jobs/${job.id}/log`).then((value) => {
+			return value.res.body.lines;
+		});
+	}
+
 	/**
 	 * List submitted Dray jobs
 	 *

@@ -4,7 +4,9 @@ chai.use(require('sinon-chai'));
 chai.use(require('chai-as-promised'));
 const expect = chai.expect;
 
+import fs from 'fs'
 import {DrayManager} from '../src/DrayManager'
+import {BuildpackJob} from '../src/BuildpackJob'
 
 describe('Dray client', () => {
 	let manager;
@@ -12,11 +14,11 @@ describe('Dray client', () => {
 	before(() => {
 		manager = new DrayManager(
 			'http://0.0.0.0:3000',
-			'redis://127.0.0.1:6379'
+			'redis://10.2.30.118:6379'
 		);
 	});
 
-	describe('', () => {
+	xdescribe('Basic jobs', () => {
 		let job1, job2;
 		let stub;
 
@@ -52,6 +54,52 @@ describe('Dray client', () => {
 
 		it('has no more jobs', () => {
 			return expect(manager.listJobs()).to.eventually.have.length.of(0);
+		});
+	});
+
+	describe('Buildpack job', function() {
+		this.timeout(20000);
+		let compilation;
+
+		beforeEach(() => {
+			compilation = new BuildpackJob(manager);
+
+			compilation.addFiles([{
+				name: 'blink.ino',
+				data: fs.readFileSync(`${__dirname}/../test/data/blink.ino`)
+			}]);
+
+			compilation.setEnvironment({
+				PLATFORM_ID: 6
+			});
+
+			compilation.setBuildpacks([
+				// 'particle/buildpack-wiring-preprocessor',
+				// 'particle/buildpack-particle-firmware:0.5.1-photon'
+				'digistump/buildpack-oak'
+			]);
+		});
+
+		xit('compiles and returns binaries', () => {
+			let promise = compilation.submit();
+			return Promise.all([
+				expect(promise).to.be.fulfilled,
+				expect(promise).to.eventually.have.property('firmware.bin')
+			]);
+		});
+
+		it('rejects with logs', () => {
+
+			compilation._files = [];
+			compilation.addFiles([{
+				name: 'blink.ino',
+				data: fs.readFileSync(`${__dirname}/../test/data/blink-with-error.ino`)
+			}]);
+
+			let promise = compilation.submit();
+			return Promise.all([
+				expect(promise).to.be.rejectedWith(Array)
+			]);
 		});
 	});
 });

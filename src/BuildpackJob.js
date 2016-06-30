@@ -1,5 +1,9 @@
 import 'babel-polyfill';
 import archiver from 'archiver';
+import redis from 'redis';
+import bluebird from 'bluebird';
+bluebird.promisifyAll(redis.RedisClient.prototype);
+
 import { PassThrough } from 'stream';
 import { DrayJob } from './DrayJob';
 
@@ -9,17 +13,62 @@ export class BuildpackJob extends DrayJob {
 
 		this._redisExpireIn = redisExpireIn;
 		this._files = [];
+		this._buildpacks = [];
+
+		this.setEnvironment({
+			REDIS_URL: this._manager._redisUrl,
+			REDIS_EXPIRE_IN: this._redisExpireIn
+		});
 	}
 
 	addFiles(files) {
 		this._files.push(...files);
+		return this;
+	}
+
+	setBuildpacks(buildpacks) {
+		this._buildpacks = buildpacks;
+		this._buildpacks.push('particle/buildpack-store');
+		return this;
 	}
 
 	submit(timeout) {
-		if (this._files.length > 0) {
-			this.setInput(this._archiveFiles());
+		for (let buildpack of this._buildpacks) {
+			// We want each buildpack to pass output directory to input of a
+			// next one. Setting following envs and output argument does that
+			let env = {
+				INPUT_FROM_STDIN: true,
+				ARCHIVE_OUTPUT: true
+			}
+			this.addStep(buildpack, env, undefined, '/output.tar.gz');
 		}
-		super.submit(timeout);
+
+		return new Promise((resolve, reject) => {
+			// If we have files to compile, archive them first
+			if (this._files.length > 0) {
+				return resolve(this._archiveFiles().then((archive) => {
+					this.setInput(archive);
+				}));
+			}
+			resolve();
+		}).then(() => {
+			// Submit this as any regular job
+			return super.submit(timeout);
+		}).then((value) => {
+			// Compilation finished. Any contents of last buildpack's output
+			// should be in Redis. Just fetch and return it
+			let client = redis.createClient(this._manager._redisUrl);
+			return client.hgetallAsync(this.id).then((value) => {
+				client.quit();
+				return value;
+			});
+		}, (reason) => {
+			return this.getLogs().then((logs) => {
+				// Because successful `getLogs` call resolves instead of rejecting
+				// we're returning a rejected promise instead
+				return Promise.reject(logs);
+			});
+		});
 	}
 
 	/**

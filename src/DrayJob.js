@@ -52,15 +52,6 @@ export class DrayJob extends EventEmitter {
 	}
 
 	/**
-	 * Get array of job logs
-	 *
-	 * @returns {Array} job logs
-	 */
-	get logs() {
-
-	}
-
-	/**
 	 * Set job parameters from passed object
 	 *
 	 * @param {Object} parameters One of the following: name, environment, input
@@ -115,14 +106,14 @@ export class DrayJob extends EventEmitter {
 			this._reject = reject;
 		});
 		// Connect to Redis
-		this._redis = redis.createClient(this._manager._redisUrl);
+		this._subscription = redis.createClient(this._manager._redisUrl);
 		// Hook onMessage handler
-		this._redis.on('pmessage', this._onMessage.bind(this));
+		this._subscription.on('pmessage', this._onMessage.bind(this));
 
 		// Submit the job...
 		this._manager.submitJob(this).then(() => {
 			// ...and once we know its ID, we can listen for change events
-			this._redis.psubscribe(`${this.id}:*`);
+			this._subscription.psubscribe(`${this.id}:*`);
 		});
 
 		// If job timeout is specified
@@ -134,6 +125,26 @@ export class DrayJob extends EventEmitter {
 		}
 
 		return this._promise;
+	}
+
+	/**
+	 * Destroy job in Dray
+	 *
+	 * @returns {Promise} Resolved once job is destroyed
+	 */
+	destroy() {
+		this._cleanup();
+		return this._manager.deleteJob(this);
+	}
+
+
+	/**
+	 * Get array of job logs
+	 *
+	 * @returns {Promise} promise resolved with {Array} of logs
+	 */
+	getLogs() {
+		return this._manager.getJobLogs(this);
 	}
 
 	/**
@@ -166,15 +177,6 @@ export class DrayJob extends EventEmitter {
 			output.input = new Buffer(this._input).toString('base64');
 		}
 		return JSON.stringify(output);
-	}
-
-	/**
-	 * Destroy job in Dray
-	 *
-	 * @returns {Promise} Resolved once job is destroyed
-	 */
-	destroy() {
-		this._manager.deleteJob(this);
 	}
 
 	/**
@@ -214,12 +216,15 @@ export class DrayJob extends EventEmitter {
 		if (this._timeout) {
 			clearTimeout(this._timeout);
 		}
-		this._redis.quit();
+		if (this._subscription) {
+			this._subscription.unsubscribe();
+			this._subscription.quit();
+		}
 	}
 
 	_mapEnvironment(env) {
 		return Object.keys(env).map((key) => {
-			return { variable: key, value: env[key] };
+			return { variable: key, value: env[key].toString() };
 		});
 	}
 }
