@@ -55,6 +55,7 @@ export class BuildpackJob extends DrayJob {
 			// Submit this as any regular job
 			return super.submit(timeout);
 		}).then((value) => {
+			this.destroy();
 			// Compilation finished. Any contents of last buildpack's output
 			// should be in Redis. Just fetch and return it
 			let client = redis.createClient(this._manager._redisUrl);
@@ -64,6 +65,7 @@ export class BuildpackJob extends DrayJob {
 			});
 		}, (reason) => {
 			return this.getLogs().then((logs) => {
+				this.destroy();
 				// Because successful `getLogs` call resolves instead of rejecting
 				// we're returning a rejected promise instead
 				return Promise.reject(logs);
