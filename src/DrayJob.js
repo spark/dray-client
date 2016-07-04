@@ -196,6 +196,7 @@ export class DrayJob extends EventEmitter {
 
 	_onJobCompleted(value) {
 		this._resolve(value);
+		this._cleanup();
 	}
 
 	_onJobFailed(reason) {
@@ -219,6 +220,7 @@ export class DrayJob extends EventEmitter {
 		if (this._subscription) {
 			this._subscription.unsubscribe();
 			this._subscription.quit();
+			this._subscription = undefined;
 		}
 	}
 
