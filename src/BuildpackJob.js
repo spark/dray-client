@@ -90,7 +90,7 @@ export class BuildpackJob extends DrayJob {
 		});
 		// Prepare output stream and buffer
 		let stream = new PassThrough();
-		let buffer = Buffer.alloc(0);
+		let buffer = new Buffer('');
 		stream.on('finish', () => {
 			_resolve(buffer);
 		});
