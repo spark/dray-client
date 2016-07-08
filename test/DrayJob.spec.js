@@ -1,8 +1,9 @@
+/*eslint-env and, mocha */
 import chai from 'chai';
 chai.use(require('chai-as-promised'));
 const expect = chai.expect;
 
-import {DrayJob} from '../src/DrayJob'
+import {DrayJob} from '../src/DrayJob';
 
 describe('DrayJob', () => {
 	describe('setEnvironment', () => {
@@ -30,7 +31,7 @@ describe('DrayJob', () => {
 		it('serializes full object', () => {
 			let job = new DrayJob();
 			job.setEnvironment({FOO: 'BAR'})
-				 .setInput('boo');
+				.setInput('boo');
 			job.setParameters({
 				name: 'foo',
 			});

@@ -78,33 +78,56 @@ export class BuildpackJob extends DrayJob {
 			this.addStep(buildpack, env, undefined, '/output.tar.gz');
 		}
 
-		return new Promise((resolve) => {
-			// If we have files to compile, archive them first
-			if (this._files.length > 0) {
-				return resolve(this._archiveFiles().then((archive) => {
-					this.setInput(archive);
-				}));
-			}
-			resolve();
-		}).then(() => {
-			// Submit this as any regular job
-			return super.submit(timeout);
-		}).then(() => {
+		return new Promise(this._prepareInput.bind(this))
+			.then(super.submit.bind(this, timeout))
+			.then(this._onResolved.bind(this),
+						this._onRejected.bind(this));
+	}
+
+	/**
+	 * If any files were passed, archive them and set as input.
+	 *
+	 * @param {Function} callback Callback when finished
+	 * @returns {Mixed} {undefined} or result of the callback
+	 */
+	_prepareInput(callback) {
+		// If we have files to compile, archive them first
+		if (this._files.length > 0) {
+			return callback(this._archiveFiles().then((archive) => {
+				this.setInput(archive);
+			}));
+		}
+		callback();
+	}
+
+	/**
+	 * Callback for successful compilation. Any contents of last buildpack's
+	 * output should be in Redis. This will fetch and return it.
+	 *
+	 * @returns {Promise} Resolved with job output
+	 */
+	_onResolved() {
+		this.destroy();
+		// Compilation finished.
+		let client = redis.createClient(this._manager._redisUrl);
+		return client.hgetallAsync(this.id).then((output) => {
+			client.quit();
+			// Return the output
+			return output;
+		});
+	}
+
+	/**
+	 * Callback for failed compilation.
+	 *
+	 * @return {Promise} Rejected promise with logs
+	 */
+	_onRejected() {
+		return this.getLogs().then((logs) => {
 			this.destroy();
-			// Compilation finished. Any contents of last buildpack's output
-			// should be in Redis. Just fetch and return it
-			let client = redis.createClient(this._manager._redisUrl);
-			return client.hgetallAsync(this.id).then((value) => {
-				client.quit();
-				return value;
-			});
-		}, () => {
-			return this.getLogs().then((logs) => {
-				this.destroy();
-				// Because successful `getLogs` call resolves instead of rejecting
-				// we're returning a rejected promise instead
-				return Promise.reject(logs);
-			});
+			// Because successful `getLogs` call resolves instead of rejecting
+			// we're returning a rejected promise instead
+			return Promise.reject(logs);
 		});
 	}
 
