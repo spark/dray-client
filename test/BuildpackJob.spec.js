@@ -14,7 +14,7 @@ describe('BuildpackJob', () => {
 		before(() => {
 			compilation = new BuildpackJob();
 			compilation._manager = {
-				submitJob: sinon.stub().returns(Promise.resolve())
+				_submitJob: sinon.stub().returns(Promise.resolve())
 			};
 			compilation.setInput = sinon.stub();
 

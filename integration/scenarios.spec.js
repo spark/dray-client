@@ -13,8 +13,8 @@ describe('Dray client', () => {
 
 	before(() => {
 		manager = new DrayManager(
-			'http://0.0.0.0:3000',
-			'redis://10.2.30.118:6379'
+			process.env.DRAY_URL || 'http://0.0.0.0:8000',
+			process.env.REDIS_URL || 'redis://10.2.30.118:6379'
 		);
 	});
 
