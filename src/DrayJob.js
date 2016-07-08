@@ -3,6 +3,12 @@ import { EventEmitter } from 'events';
 import redis from 'redis';
 
 export class DrayJob extends EventEmitter {
+	/**
+	 * DrayJob class constructor.
+	 *
+	 * @param {DrayManager} manager {DrayManager} instance
+	 * @param {Object} parameters Parameters to set
+	 */
 	constructor(manager, parameters) {
 		super();
 		this._manager = manager;
@@ -16,8 +22,8 @@ export class DrayJob extends EventEmitter {
 	/**
 	 * Number of steps already completed
 	 *
-	 * @returns {Number}    number of completed steps
-	 * @returns {undefined} if first step hasn't finished yet
+	 * @returns {Number}    Number of completed steps
+	 * @returns {undefined} If first step hasn't finished yet
 	 */
 	get stepsCompleted() {
 		return this._stepsCompleted;
@@ -35,7 +41,7 @@ export class DrayJob extends EventEmitter {
 	/**
 	 * Job creation date
 	 *
-	 * @returns {Date} creation date
+	 * @returns {Date} Job creation date
 	 */
 	get createdAt() {
 		return this._createdAt;
@@ -44,8 +50,8 @@ export class DrayJob extends EventEmitter {
 	/**
 	 * Job finish date.
 	 *
-	 * @returns {Date}      job finish date
-	 * @returns {undefined} if job is still running
+	 * @returns {Date}      Job finish date
+	 * @returns {undefined} If job is still running
 	 */
 	get finishedIn() {
 		return this._finishedIn;
@@ -54,8 +60,8 @@ export class DrayJob extends EventEmitter {
 	/**
 	 * Set job parameters from passed object
 	 *
-	 * @param {Object} parameters One of the following: name, environment, input
-	 * @returns {this} this object
+	 * @param {Object} parameters One of the following: name, input
+	 * @returns {this} `this` object
 	 */
 	setParameters(parameters) {
 		Object.assign(this, parameters);
@@ -66,13 +72,19 @@ export class DrayJob extends EventEmitter {
 	 * Set job environment shared between steps
 	 *
 	 * @param {Object} env Object of environment variables
-	 * @returns {this} this object
+	 * @returns {this} `this` object
 	 */
 	setEnvironment(env) {
 		Object.assign(this._environment, env);
 		return this;
 	}
 
+	/**
+	 * Set job input data
+	 *
+	 * @param {Mixed} input Input to be sent
+	 * @returns {this} `this` object
+	 */
 	setInput(input) {
 		this._input = input;
 		return this;
@@ -111,7 +123,7 @@ export class DrayJob extends EventEmitter {
 		this._subscription.on('pmessage', this._onMessage.bind(this));
 
 		// Submit the job...
-		this._manager.submitJob(this).then(() => {
+		this._manager._submitJob(this).then(() => {
 			// ...and once we know its ID, we can listen for change events
 			this._subscription.psubscribe(`${this.id}:*`);
 		});
@@ -134,7 +146,7 @@ export class DrayJob extends EventEmitter {
 	 */
 	destroy() {
 		this._cleanup();
-		return this._manager.deleteJob(this);
+		return this._manager._deleteJob(this);
 	}
 
 
@@ -144,7 +156,7 @@ export class DrayJob extends EventEmitter {
 	 * @returns {Promise} promise resolved with {Array} of logs
 	 */
 	getLogs() {
-		return this._manager.getJobLogs(this);
+		return this._manager._getJobLogs(this);
 	}
 
 	/**
@@ -194,16 +206,34 @@ export class DrayJob extends EventEmitter {
 		this.emit(`${property}Changed`, data);
 	}
 
+	/**
+	 * Callback for a job status changing to "complete"
+	 *
+	 * @param {Mixed} value Value to resolve the promise with
+	 * @returns {undefined}
+	 */
 	_onJobCompleted(value) {
 		this._resolve(value);
 		this._cleanup();
 	}
 
+	/**
+	 * Callback for a job status changing to "error"
+	 *
+	 * @param {Mixed} reason Reason to reject the promise with
+	 * @returns {undefined}
+	 */
 	_onJobFailed(reason) {
 		this._reject(reason);
 		this._cleanup();
 	}
 
+	/**
+	 * Callback for a job status changing
+	 *
+	 * @param {String} newStatus New job status
+	 * @returns {undefined}
+	 */
 	_statusChanged(newStatus) {
 		this._status = newStatus;
 		if (this._status === 'complete') {
@@ -213,6 +243,12 @@ export class DrayJob extends EventEmitter {
 		}
 	}
 
+	/**
+	 * Cleaning up function. Removes timeout and closes
+	 * Redis connection.
+	 *
+	 * @returns {undefined}
+	 */
 	_cleanup() {
 		if (this._timeout) {
 			clearTimeout(this._timeout);
@@ -224,6 +260,12 @@ export class DrayJob extends EventEmitter {
 		}
 	}
 
+	/**
+	 * Turn {Object} into env {Array} accepted by Dray.
+	 *
+	 * @param {Object} env Environment object
+	 * @returns {Array} Array accepted by Dray
+	 */
 	_mapEnvironment(env) {
 		return Object.keys(env).map((key) => {
 			return { variable: key, value: env[key].toString() };

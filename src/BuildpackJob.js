@@ -8,6 +8,13 @@ import { PassThrough } from 'stream';
 import { DrayJob } from './DrayJob';
 
 export class BuildpackJob extends DrayJob {
+	/**
+	 * BuildpackJob class constructor.
+	 *
+	 * @param {DrayManager} manager {DrayManager} instance
+	 * @param {Object} parameters Parameters to set
+	 * @param {Number} redisExpireIn Expiration time in seconds for output stored in Redis
+	 */
 	constructor(manager, parameters, redisExpireIn=600) {
 		super(manager, parameters);
 
@@ -23,17 +30,43 @@ export class BuildpackJob extends DrayJob {
 		}
 	}
 
+	/**
+	 * Add files to the job.
+	 * Array should contain {Object}s with `filename` {String} and
+	 * `data` {Buffer} or {String} properties. I.e.:
+	 *
+	 * job.addFiles([{
+	 * 	filename: 'foo.ino',
+	 * 	data: fs.readFileSync('foo.ino')
+	 * }]);
+	 *
+	 * @param {Array} files Array of files to add
+	 * @returns {this} `this` object
+	 */
 	addFiles(files) {
 		this._files.push(...files);
 		return this;
 	}
 
+	/**
+	 * Sets buildpacks to be used during compilation.
+	 * List will be appended by storing buildpack.
+	 *
+	 * @param {Array} buildpacks {Array} of {String}s specifying Docker images
+	 * @returns {this} `this` object
+	 */
 	setBuildpacks(buildpacks) {
 		this._buildpacks = buildpacks;
 		this._buildpacks.push('particle/buildpack-store');
 		return this;
 	}
 
+	/**
+	 * Submits job
+	 *
+	 * @param  {Number} timeout Job timeout in ms
+	 * @return {Promise} Will resolve when job finished.
+	 */
 	submit(timeout) {
 		for (let buildpack of this._buildpacks) {
 			// We want each buildpack to pass output directory to input of a
