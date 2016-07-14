@@ -1,4 +1,3 @@
-import 'babel-polyfill';
 import { EventEmitter } from 'events';
 import redis from 'redis';
 

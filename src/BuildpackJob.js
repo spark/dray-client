@@ -1,4 +1,3 @@
-import 'babel-polyfill';
 import archiver from 'archiver';
 import redis from 'redis';
 import bluebird from 'bluebird';

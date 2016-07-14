@@ -1,4 +1,3 @@
-import 'babel-polyfill';
 import { DrayJob } from './DrayJob';
 import superagent from 'superagent';
 import superagentPromise from 'superagent-promise';
