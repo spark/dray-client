@@ -7,8 +7,6 @@ exports.DrayManager = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-require('babel-polyfill');
-
 var _DrayJob = require('./DrayJob');
 
 var _superagent = require('superagent');
@@ -24,6 +22,13 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var DrayManager = exports.DrayManager = function () {
+	/**
+  * DrayManager class constructor.
+  *
+  * @param {String} drayUrl URL for Dray instance
+  * @param {String} redisUrl URL for Redis instance
+  */
+
 	function DrayManager(drayUrl, redisUrl) {
 		_classCallCheck(this, DrayManager);
 
@@ -32,34 +37,20 @@ var DrayManager = exports.DrayManager = function () {
 		this._agent = (0, _superagentPromise2.default)(_superagent2.default, Promise);
 	}
 
+	/**
+  * Instantiate, set parameters and return {DrayJob}
+  *
+  * @param {Object} parameters Parameters to set
+  * @returns {DrayJob} Job ready to execute
+  */
+
+
 	_createClass(DrayManager, [{
 		key: 'createJob',
 		value: function createJob(parameters) {
 			var job = new _DrayJob.DrayJob(this);
 			job.setParameters(parameters);
 			return job;
-		}
-	}, {
-		key: 'submitJob',
-		value: function submitJob(job) {
-			return this._request('jobs', 'post', job.toJSON()).then(function (value) {
-				Object.assign(job, value.res.body);
-				return job;
-			});
-		}
-	}, {
-		key: 'deleteJob',
-		value: function deleteJob(job) {
-			return this._request('jobs/' + job.id, 'del').then(function (value) {
-				return value.res.body;
-			});
-		}
-	}, {
-		key: 'getJobLogs',
-		value: function getJobLogs(job) {
-			return this._request('jobs/' + job.id + '/log').then(function (value) {
-				return value.res.body.lines;
-			});
 		}
 
 		/**
@@ -80,6 +71,62 @@ var DrayManager = exports.DrayManager = function () {
 				});
 			});
 		}
+
+		/**
+   * Submit the job to Dray
+   *
+   * @param {DrayJob} job Job to submit
+   * @returns {Promise} Resolves to {DrayJob} if success
+   */
+
+	}, {
+		key: '_submitJob',
+		value: function _submitJob(job) {
+			return this._request('jobs', 'post', job.toJSON()).then(function (value) {
+				Object.assign(job, value.res.body);
+				return job;
+			});
+		}
+
+		/**
+   * Delete job from Dray
+   *
+   * @param {DrayJob} job Job to delete
+   * @returns {Promise} Resolves with Dray result
+   */
+
+	}, {
+		key: '_deleteJob',
+		value: function _deleteJob(job) {
+			return this._request('jobs/' + job.id, 'del').then(function (value) {
+				return value.res.body;
+			});
+		}
+
+		/**
+   * Get logs for specified job
+   *
+   * @param {DrayJob} job Job for which to get logs
+   * @returns {Promise} Resolves to and {Array} containing logs
+   */
+
+	}, {
+		key: '_getJobLogs',
+		value: function _getJobLogs(job) {
+			return this._request('jobs/' + job.id + '/log').then(function (value) {
+				return value.res.body.lines;
+			});
+		}
+
+		/**
+   * Send a request to Dray instance
+   *
+   * @param {String} url URL appended to Dray's URL
+   * @param {String} method (optional) HTTP method, defaults to GET
+   * @param {Mixed}  data (optional) Data to be passed
+   * @returns {Promise} resolved with request response
+   */
+
 	}, {
 		key: '_request',
 		value: function _request(url) {

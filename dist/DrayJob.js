@@ -9,8 +9,6 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-require('babel-polyfill');
-
 var _events = require('events');
 
 var _redis = require('redis');
@@ -27,6 +25,13 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 var DrayJob = exports.DrayJob = function (_EventEmitter) {
 	_inherits(DrayJob, _EventEmitter);
+
+	/**
+  * DrayJob class constructor.
+  *
+  * @param {DrayManager} manager {DrayManager} instance
+  * @param {Object} parameters Parameters to set
+  */
 
 	function DrayJob(manager, parameters) {
 		_classCallCheck(this, DrayJob);
@@ -45,8 +50,8 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
 	/**
   * Number of steps already completed
   *
-  * @returns {Number}    number of completed steps
-  * @returns {undefined} if first step hasn't finished yet
+  * @returns {Number}    Number of completed steps
+  * @returns {undefined} If first step hasn't finished yet
   */
 
 
@@ -57,8 +62,8 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
 		/**
    * Set job parameters from passed object
    *
-   * @param {Object} parameters One of the following: name, environment, input
-   * @returns {this} this object
+   * @param {Object} parameters One of the following: name, input
+   * @returns {this} `this` object
    */
 		value: function setParameters(parameters) {
 			Object.assign(this, parameters);
@@ -69,7 +74,7 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
    * Set job environment shared between steps
    *
    * @param {Object} env Object of environment variables
-   * @returns {this} this object
+   * @returns {this} `this` object
    */
 
 	}, {
@@ -78,6 +83,14 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
 			Object.assign(this._environment, env);
 			return this;
 		}
+
+		/**
+   * Set job input data
+   *
+   * @param {Mixed} input Input to be sent
+   * @returns {this} `this` object
+   */
+
 	}, {
 		key: 'setInput',
 		value: function setInput(input) {
@@ -126,7 +139,7 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
 			this._subscription.on('pmessage', this._onMessage.bind(this));
 
 			// Submit the job...
-			this._manager.submitJob(this).then(function () {
+			this._manager._submitJob(this).then(function () {
 				// ...and once we know its ID, we can listen for change events
 				_this2._subscription.psubscribe(_this2.id + ':*');
 			});
@@ -152,7 +165,7 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
 		key: 'destroy',
 		value: function destroy() {
 			this._cleanup();
-			return this._manager.deleteJob(this);
+			return this._manager._deleteJob(this);
 		}
 
 		/**
@@ -164,7 +177,7 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
 	}, {
 		key: 'getLogs',
 		value: function getLogs() {
-			return this._manager.getJobLogs(this);
+			return this._manager._getJobLogs(this);
 		}
 
 		/**
@@ -228,18 +241,42 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
 
 			this.emit(property + 'Changed', data);
 		}
+
+		/**
+   * Callback for a job status changing to "complete"
+   *
+   * @param {Mixed} value Value to resolve the promise with
+   * @returns {undefined}
+   */
+
 	}, {
 		key: '_onJobCompleted',
 		value: function _onJobCompleted(value) {
 			this._resolve(value);
 			this._cleanup();
 		}
+
+		/**
+   * Callback for a job status changing to "error"
+   *
+   * @param {Mixed} reason Reason to reject the promise with
+   * @returns {undefined}
+   */
+
 	}, {
 		key: '_onJobFailed',
 		value: function _onJobFailed(reason) {
 			this._reject(reason);
 			this._cleanup();
 		}
+
+		/**
+   * Callback for a job status changing
+   *
+   * @param {String} newStatus New job status
+   * @returns {undefined}
+   */
+
 	}, {
 		key: '_statusChanged',
 		value: function _statusChanged(newStatus) {
@@ -250,6 +287,14 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
 				this._onJobFailed();
 			}
 		}
+
+		/**
+   * Cleaning up function. Removes timeout and closes
+   * Redis connection.
+   *
+   * @returns {undefined}
+   */
+
 	}, {
 		key: '_cleanup',
 		value: function _cleanup() {
@@ -262,6 +307,14 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
 				this._subscription = undefined;
 			}
 		}
+
+		/**
+   * Turn {Object} into env {Array} accepted by Dray.
+   *
+   * @param {Object} env Environment object
+   * @returns {Array} Array accepted by Dray
+   */
+
 	}, {
 		key: '_mapEnvironment',
 		value: function _mapEnvironment(env) {
@@ -290,7 +343,7 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
 		/**
    * Job creation date
    *
-   * @returns {Date} creation date
+   * @returns {Date} Job creation date
    */
 
 	}, {
@@ -302,8 +355,8 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
 		/**
    * Job finish date.
    *
-   * @returns {Date}      job finish date
-   * @returns {undefined} if job is still running
+   * @returns {Date}      Job finish date
+   * @returns {undefined} If job is still running
    */
 
 	}, {

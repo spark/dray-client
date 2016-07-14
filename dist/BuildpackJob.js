@@ -9,8 +9,6 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-require('babel-polyfill');
-
 var _archiver = require('archiver');
 
 var _archiver2 = _interopRequireDefault(_archiver);
@@ -42,6 +40,14 @@ _bluebird2.default.promisifyAll(_redis2.default.RedisClient.prototype);
 var BuildpackJob = exports.BuildpackJob = function (_DrayJob) {
 	_inherits(BuildpackJob, _DrayJob);
 
+	/**
+  * BuildpackJob class constructor.
+  *
+  * @param {DrayManager} manager {DrayManager} instance
+  * @param {Object} parameters Parameters to set
+  * @param {Number} redisExpireIn Expiration time in seconds for output stored in Redis
+  */
+
 	function BuildpackJob(manager, parameters) {
 		var redisExpireIn = arguments.length <= 2 || arguments[2] === undefined ? 600 : arguments[2];
 
@@ -62,6 +68,21 @@ var BuildpackJob = exports.BuildpackJob = function (_DrayJob) {
 		return _this;
 	}
 
+	/**
+  * Add files to the job.
+  * Array should contain {Object}s with `filename` {String} and
+  * `data` {Buffer} or {String} properties. I.e.:
+  *
+  * job.addFiles([{
+  * 	filename: 'foo.ino',
+  * 	data: fs.readFileSync('foo.ino')
+  * }]);
+  *
+  * @param {Array} files Array of files to add
+  * @returns {this} `this` object
+  */
+
+
 	_createClass(BuildpackJob, [{
 		key: 'addFiles',
 		value: function addFiles(files) {
@@ -70,6 +91,15 @@ var BuildpackJob = exports.BuildpackJob = function (_DrayJob) {
 			(_files = this._files).push.apply(_files, _toConsumableArray(files));
 			return this;
 		}
+
+		/**
+   * Sets buildpacks to be used during compilation.
+   * List will be appended by storing buildpack.
+   *
+   * @param {Array} buildpacks {Array} of {String}s specifying Docker images
+   * @returns {this} `this` object
+   */
+
 	}, {
 		key: 'setBuildpacks',
 		value: function setBuildpacks(buildpacks) {
@@ -77,11 +107,17 @@ var BuildpackJob = exports.BuildpackJob = function (_DrayJob) {
 			this._buildpacks.push('particle/buildpack-store');
 			return this;
 		}
+
+		/**
+   * Submits job
+   *
+   * @param  {Number} timeout Job timeout in ms
+   * @return {Promise} Will resolve when job finished.
+   */
+
 	}, {
 		key: 'submit',
 		value: function submit(timeout) {
-			var _this2 = this;
-
 			var _iteratorNormalCompletion = true;
 			var _didIteratorError = false;
 			var _iteratorError = undefined;
@@ -113,33 +149,66 @@ var BuildpackJob = exports.BuildpackJob = function (_DrayJob) {
 				}
 			}
 
-			return new Promise(function (resolve) {
-				// If we have files to compile, archive them first
-				if (_this2._files.length > 0) {
-					return resolve(_this2._archiveFiles().then(function (archive) {
-						_this2.setInput(archive);
-					}));
-				}
-				resolve();
-			}).then(function () {
-				// Submit this as any regular job
-				return _get(Object.getPrototypeOf(BuildpackJob.prototype), 'submit', _this2).call(_this2, timeout);
-			}).then(function () {
-				_this2.destroy();
-				// Compilation finished. Any contents of last buildpack's output
-				// should be in Redis. Just fetch and return it
-				var client = _redis2.default.createClient(_this2._manager._redisUrl);
-				return client.hgetallAsync(_this2.id).then(function (value) {
-					client.quit();
-					return value;
-				});
-			}, function () {
-				return _this2.getLogs().then(function (logs) {
-					_this2.destroy();
-					// Because successful `getLogs` call resolves instead of rejecting
-					// we're returning a rejected promise instead
-					return Promise.reject(logs);
-				});
+			return new Promise(this._prepareInput.bind(this)).then(_get(Object.getPrototypeOf(BuildpackJob.prototype), 'submit', this).bind(this, timeout)).then(this._onResolved.bind(this), this._onRejected.bind(this));
+		}
+
+		/**
+   * If any files were passed, archive them and set as input.
+   *
+   * @param {Function} callback Callback when finished
+   * @returns {Mixed} {undefined} or result of the callback
+   */
+
+	}, {
+		key: '_prepareInput',
+		value: function _prepareInput(callback) {
+			var _this2 = this;
+
+			// If we have files to compile, archive them first
+			if (this._files.length > 0) {
+				return callback(this._archiveFiles().then(function (archive) {
+					_this2.setInput(archive);
+				}));
+			}
+			callback();
+		}
+
+		/**
+   * Callback for successful compilation. Any contents of last buildpack's
+   * output should be in Redis. This will fetch and return it.
+   *
+   * @returns {Promise} Resolved with job output
+   */
+
+	}, {
+		key: '_onResolved',
+		value: function _onResolved() {
+			this.destroy();
+			// Compilation finished.
+			var client = _redis2.default.createClient(this._manager._redisUrl);
+			return client.hgetallAsync(this.id).then(function (output) {
+				client.quit();
+				// Return the output
+				return output;
+			});
+		}
+
+		/**
+   * Callback for failed compilation.
+   *
+   * @return {Promise} Rejected promise with logs
+   */
+
+	}, {
+		key: '_onRejected',
+		value: function _onRejected() {
+			var _this3 = this;
+
+			return this.getLogs().then(function (logs) {
+				_this3.destroy();
+				// Because successful `getLogs` call resolves instead of rejecting
+				// we're returning a rejected promise instead
+				return Promise.reject(logs);
 			});
 		}
 
