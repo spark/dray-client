@@ -185,7 +185,9 @@ var BuildpackJob = exports.BuildpackJob = function (_DrayJob) {
 		value: function _onResolved() {
 			this.destroy();
 			// Compilation finished.
-			var client = _redis2.default.createClient(this._manager._redisUrl);
+			var client = _redis2.default.createClient(this._manager._redisUrl, {
+				'return_buffers': true
+			});
 			return client.hgetallAsync(this.id).then(function (output) {
 				client.quit();
 				// Return the output

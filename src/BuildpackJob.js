@@ -108,7 +108,9 @@ export class BuildpackJob extends DrayJob {
 	_onResolved() {
 		this.destroy();
 		// Compilation finished.
-		let client = redis.createClient(this._manager._redisUrl);
+		let client = redis.createClient(this._manager._redisUrl, {
+			'return_buffers': true
+		});
 		return client.hgetallAsync(this.id).then((output) => {
 			client.quit();
 			// Return the output
