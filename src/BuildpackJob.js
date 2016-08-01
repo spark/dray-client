@@ -106,7 +106,6 @@ export class BuildpackJob extends DrayJob {
 	 * @returns {Promise} Resolved with job output
 	 */
 	_onResolved() {
-		this.destroy();
 		// Compilation finished.
 		let client = redis.createClient(this._manager._redisUrl, {
 			'return_buffers': true
@@ -125,7 +124,6 @@ export class BuildpackJob extends DrayJob {
 	 */
 	_onRejected() {
 		return this.getLogs().then((logs) => {
-			this.destroy();
 			// Because successful `getLogs` call resolves instead of rejecting
 			// we're returning a rejected promise instead
 			return Promise.reject(logs);
