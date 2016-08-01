@@ -55,3 +55,13 @@ compilation.submit().then((binaries) => {
 	console.error("Compilation error:", reason)
 });
 ```
+
+## Development
+
+### Releasing
+
+1. Create git tag with version
+2. Create GitHub release from this tag
+3. Run `npm pack`
+4. Upload resulting tarball to the GH release
+5. Add tarball URL to `package.json` using `dray-client`
