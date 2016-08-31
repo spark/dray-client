@@ -137,6 +137,9 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
 			this._subscription = _redis2.default.createClient(this._manager._redisUrl);
 			// Hook onMessage handler
 			this._subscription.on('pmessage', this._onMessage.bind(this));
+			this._subscription.on('error', function (error) {
+				_this2._onJobFailed('Redis error: ' + error.toString());
+			});
 
 			// Submit the job...
 			this._manager._submitJob(this).then(function () {

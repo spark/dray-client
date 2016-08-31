@@ -69,7 +69,7 @@ var DrayManager = exports.DrayManager = function () {
 					var job = new _DrayJob.DrayJob(_this, item);
 					return job;
 				});
-			});
+			}, this._onRejected);
 		}
 
 		/**
@@ -85,7 +85,7 @@ var DrayManager = exports.DrayManager = function () {
 			return this._request('jobs', 'post', job.toJSON()).then(function (value) {
 				Object.assign(job, value.res.body);
 				return job;
-			});
+			}, this._onRejected);
 		}
 
 		/**
@@ -100,7 +100,7 @@ var DrayManager = exports.DrayManager = function () {
 		value: function _deleteJob(job) {
 			return this._request('jobs/' + job.id, 'del').then(function (value) {
 				return value.res.body;
-			});
+			}, this._onRejected);
 		}
 
 		/**
@@ -115,7 +115,7 @@ var DrayManager = exports.DrayManager = function () {
 		value: function _getJobLogs(job) {
 			return this._request('jobs/' + job.id + '/log').then(function (value) {
 				return value.res.body.lines;
-			});
+			}, this._onRejected);
 		}
 
 		/**
@@ -134,6 +134,11 @@ var DrayManager = exports.DrayManager = function () {
 			var data = arguments.length <= 2 || arguments[2] === undefined ? undefined : arguments[2];
 
 			return this._agent[method](this._drayUrl + '/' + url, data).end();
+		}
+	}, {
+		key: '_onRejected',
+		value: function _onRejected(reason) {
+			return Promise.reject(reason);
 		}
 	}]);
 
