@@ -120,6 +120,9 @@ export class DrayJob extends EventEmitter {
 		this._subscription = redis.createClient(this._manager._redisUrl);
 		// Hook onMessage handler
 		this._subscription.on('pmessage', this._onMessage.bind(this));
+		this._subscription.on('error', (error) => {
+			this._onJobFailed('Redis error: ' + error.toString());
+		});
 
 		// Submit the job...
 		this._manager._submitJob(this).then(() => {

@@ -38,7 +38,7 @@ export class DrayManager {
 				let job = new DrayJob(this, item);
 				return job;
 			});
-		});
+		}, this._onRejected);
 	}
 
 	/**
@@ -51,7 +51,7 @@ export class DrayManager {
 		return this._request('jobs', 'post', job.toJSON()).then((value) => {
 			Object.assign(job, value.res.body);
 			return job;
-		});
+		}, this._onRejected);
 	}
 
 	/**
@@ -63,7 +63,7 @@ export class DrayManager {
 	_deleteJob(job) {
 		return this._request(`jobs/${job.id}`, 'del').then((value) => {
 			return value.res.body;
-		});
+		}, this._onRejected);
 	}
 
 	/**
@@ -75,7 +75,7 @@ export class DrayManager {
 	_getJobLogs(job) {
 		return this._request(`jobs/${job.id}/log`).then((value) => {
 			return value.res.body.lines;
-		});
+		}, this._onRejected);
 	}
 
 	/**
@@ -88,5 +88,9 @@ export class DrayManager {
 	 */
 	_request(url, method='get', data=undefined) {
 		return this._agent[method](`${this._drayUrl}/${url}`, data).end();
+	}
+
+	_onRejected(reason) {
+		return Promise.reject(reason);
 	}
 }

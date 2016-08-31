@@ -2,6 +2,7 @@
 import chai from 'chai';
 chai.use(require('chai-as-promised'));
 const expect = chai.expect;
+import sinon from 'sinon';
 
 import {DrayJob} from '../src/DrayJob';
 
@@ -55,6 +56,21 @@ describe('DrayJob', () => {
 				],
 				input: 'Ym9v',
 			});
+		});
+	});
+
+	describe('submit', () => {
+		it('rejects promise on Redis error', function() {
+			let job = new DrayJob();
+			job._manager = {
+				_redisUrl: 'redis://127.0.0.1:1234',
+				_submitJob: () => {
+					return {then: sinon.stub()};
+				}
+			};
+
+			let promise = job.submit();
+			return expect(promise).to.eventually.be.rejected;
 		});
 	});
 });
