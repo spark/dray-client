@@ -39,6 +39,9 @@ describe('DrayJob', () => {
 			job.addStep('scratch', {
 				BAR: 'BAZ'
 			}, 'step1', 'output.txt', true);
+			job.addStep('scratch2', {
+				FOO: 'BAR'
+			}, 'step2', 'output2.txt');
 
 			expect(JSON.parse(job.toJSON())).to.eql({
 				steps: [{
@@ -49,6 +52,13 @@ describe('DrayJob', () => {
 					name: 'step1',
 					output: 'output.txt',
 					refresh: true
+				},{
+					source: 'scratch2',
+					environment: [
+						{variable: 'FOO', value: 'BAR'}
+					],
+					name: 'step2',
+					output: 'output2.txt'
 				}],
 				name: 'foo',
 				environment: [
