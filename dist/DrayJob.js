@@ -21,7 +21,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /*eslint-disable curly */
+
 
 var DrayJob = exports.DrayJob = function (_EventEmitter) {
 	_inherits(DrayJob, _EventEmitter);
@@ -106,13 +107,21 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
    * @param {String} name (optional) Name of the step
    * @param {String} output (optional) Output channel to be captured
    * @param {Boolean} refresh (optional) If true, image will be pulled before
+   * @param {String} networkMode (optional) Network mode for this container
+   * @param {Number} cpuShares (optional) Container's CPU shares
+   * @param {Number} memory (optional) Memory limit in bytes
    * @returns {this} this object
    */
 
 	}, {
 		key: 'addStep',
-		value: function addStep(source, environment, name, output, refresh) {
-			this._steps.push({ source: source, environment: environment, name: name, output: output, refresh: refresh });
+		value: function addStep(source, environment, name, output, refresh, networkMode, cpuShares, memory) {
+			var step = { source: source, environment: environment, name: name, output: output, refresh: refresh };
+			if (networkMode) step.networkMode = networkMode;
+			if (cpuShares) step.cpuShares = cpuShares;
+			if (memory) step.memory = memory;
+
+			this._steps.push(step);
 			return this;
 		}
 

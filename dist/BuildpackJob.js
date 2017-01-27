@@ -132,7 +132,13 @@ var BuildpackJob = exports.BuildpackJob = function (_DrayJob) {
 						INPUT_FROM_STDIN: true,
 						ARCHIVE_OUTPUT: true
 					};
-					this.addStep(buildpack, env, undefined, '/output.tar.gz');
+
+					if (typeof buildpack === 'string') {
+						this.addStep(buildpack, env, undefined, '/output.tar.gz');
+					} else {
+						var args = [buildpack.source, env, buildpack.name, '/output.tar.gz', buildpack.refresh ? buildpack.refresh : undefined, buildpack.networkMode ? buildpack.networkMode : undefined, buildpack.cpuShares ? buildpack.cpuShares : undefined, buildpack.memory ? buildpack.memory : undefined];
+						this.addStep.apply(this, args);
+					}
 				}
 			} catch (err) {
 				_didIteratorError = true;
