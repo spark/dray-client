@@ -58,6 +58,36 @@ describe('BuildpackJob', () => {
 
 			sandbox.restore();
 		});
+
+		it('creates step from object', () => {
+			sandbox = sinon.sandbox.create();
+			sandbox.stub(DrayJob.prototype, 'submit');
+
+			let job = new BuildpackJob();
+			job.setBuildpacks([{
+				source: 'foo',
+				networkMode: 'host',
+				cpuShares: 1,
+				memory: 2
+			}]);
+			job.submit();
+			expect(job._steps).to.have.length.of(2);
+			expect(job._steps[0]).to.eql({
+				environment: {
+					ARCHIVE_OUTPUT: true,
+					INPUT_FROM_STDIN: true,
+				},
+				name: undefined,
+				output: '/output.tar.gz',
+				refresh: undefined,
+				source: 'foo',
+				networkMode: 'host',
+				cpuShares: 1,
+				memory: 2
+			});
+
+			sandbox.restore();
+		});
 	});
 
 	describe('archiving files', () => {

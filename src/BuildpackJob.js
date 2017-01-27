@@ -74,7 +74,22 @@ export class BuildpackJob extends DrayJob {
 				INPUT_FROM_STDIN: true,
 				ARCHIVE_OUTPUT: true
 			};
-			this.addStep(buildpack, env, undefined, '/output.tar.gz');
+
+			if (typeof buildpack === 'string') {
+				this.addStep(buildpack, env, undefined, '/output.tar.gz');
+			} else {
+				let args = [
+					buildpack.source,
+					env,
+					buildpack.name,
+					'/output.tar.gz',
+					buildpack.refresh ? buildpack.refresh : undefined,
+					buildpack.networkMode ? buildpack.networkMode : undefined,
+					buildpack.cpuShares ? buildpack.cpuShares : undefined,
+					buildpack.memory ? buildpack.memory : undefined
+				];
+				this.addStep.apply(this, args);
+			}
 		}
 
 		return new Promise(this._prepareInput.bind(this))

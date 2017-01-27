@@ -1,3 +1,4 @@
+/*eslint-disable curly */
 import { EventEmitter } from 'events';
 import redis from 'redis';
 
@@ -97,10 +98,18 @@ export class DrayJob extends EventEmitter {
 	 * @param {String} name (optional) Name of the step
 	 * @param {String} output (optional) Output channel to be captured
 	 * @param {Boolean} refresh (optional) If true, image will be pulled before
+	 * @param {String} networkMode (optional) Network mode for this container
+	 * @param {Number} cpuShares (optional) Container's CPU shares
+	 * @param {Number} memory (optional) Memory limit in bytes
 	 * @returns {this} this object
 	 */
-	addStep(source, environment, name, output, refresh) {
-		this._steps.push({source, environment, name, output, refresh});
+	addStep(source, environment, name, output, refresh, networkMode, cpuShares, memory) {
+		let step = {source, environment, name, output, refresh};
+		if (networkMode) step.networkMode = networkMode;
+		if (cpuShares) step.cpuShares = cpuShares;
+		if (memory) step.memory = memory;
+
+		this._steps.push(step);
 		return this;
 	}
 
