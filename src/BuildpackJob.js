@@ -169,7 +169,7 @@ export class BuildpackJob extends DrayJob {
 		});
 
 		// Initialize archiver
-		let archive = archiver('tar', {gzip: true});
+		let archive = archiver('tar', { gzip: true });
 		archive.on('error', (err) => {
 			_reject(err);
 		});

@@ -5,6 +5,17 @@ const expect = chai.expect;
 import sinon from 'sinon';
 
 import {DrayJob} from '../src/DrayJob';
+import TimeoutError from '../src/TimeoutError';
+
+function _stubRedisClient(job) {
+	job._createRedisClient = () => {
+		return {
+			on: sinon.stub(),
+			unsubscribe: sinon.stub(),
+			quit: sinon.stub()
+		}
+	};
+}
 
 describe('DrayJob', () => {
 	describe('setEnvironment', () => {
@@ -74,6 +85,37 @@ describe('DrayJob', () => {
 
 			let promise = job.submit();
 			return expect(promise).to.eventually.be.rejected;
+		});
+
+		it('rejects promise on submission error', () => {
+			let job = new DrayJob();
+			let ex = new Error('My error');
+
+			_stubRedisClient(job);
+
+			job._manager = {
+				_submitJob: () => {
+					return Promise.reject(ex);
+				}
+			};
+
+			let promise = job.submit();
+			return expect(promise).to.eventually.be.rejectedWith(ex);
+		});
+
+		it('rejects on timeout', () => {
+			let job = new DrayJob();
+
+			_stubRedisClient(job);
+
+			job._manager = {
+				_submitJob: () => {
+					return new Promise(() => {}, () => {});
+				}
+			};
+
+			let promise = job.submit(1);
+			return expect(promise).to.eventually.be.rejectedWith(TimeoutError);
 		});
 	});
 });

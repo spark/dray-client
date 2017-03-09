@@ -1,6 +1,7 @@
 /*eslint-disable curly */
 import { EventEmitter } from 'events';
 import redis from 'redis';
+import TimeoutError from './TimeoutError';
 
 export class DrayJob extends EventEmitter {
 	/**
@@ -104,7 +105,7 @@ export class DrayJob extends EventEmitter {
 	 * @returns {this} this object
 	 */
 	addStep(source, environment, name, output, refresh, networkMode, cpuShares, memory) {
-		let step = {source, environment, name, output, refresh};
+		let step = { source, environment, name, output, refresh };
 		if (networkMode) step.networkMode = networkMode;
 		if (cpuShares) step.cpuShares = cpuShares;
 		if (memory) step.memory = memory;
@@ -126,24 +127,26 @@ export class DrayJob extends EventEmitter {
 			this._reject = reject;
 		});
 		// Connect to Redis
-		this._subscription = redis.createClient(this._manager._redisUrl);
+		this._subscription = this._createRedisClient(this._manager._redisUrl);
 		// Hook onMessage handler
 		this._subscription.on('pmessage', this._onMessage.bind(this));
 		this._subscription.on('error', (error) => {
-			this._onJobFailed('Redis error: ' + error.toString());
+			this._onJobFailed(error);
 		});
 
 		// Submit the job...
 		this._manager._submitJob(this).then(() => {
 			// ...and once we know its ID, we can listen for change events
 			this._subscription.psubscribe(`${this.id}:*`);
+		}, (reason) => {
+			this._onJobFailed(reason);
 		});
 
 		// If job timeout is specified
 		if (timeout) {
 			this._timout = setTimeout(() => {
 				// Fail the job when timeout reached
-				this._onJobFailed('Job has timed out');
+				this._onJobFailed(new TimeoutError('Job has timed out'));
 			}, timeout);
 		}
 
@@ -222,6 +225,7 @@ export class DrayJob extends EventEmitter {
 	 *
 	 * @param {Mixed} value Value to resolve the promise with
 	 * @returns {undefined}
+	 * @private
 	 */
 	_onJobCompleted(value) {
 		this._resolve(value);
@@ -233,6 +237,7 @@ export class DrayJob extends EventEmitter {
 	 *
 	 * @param {Mixed} reason Reason to reject the promise with
 	 * @returns {undefined}
+	 * @private
 	 */
 	_onJobFailed(reason) {
 		this._reject(reason);
@@ -244,6 +249,7 @@ export class DrayJob extends EventEmitter {
 	 *
 	 * @param {String} newStatus New job status
 	 * @returns {undefined}
+	 * @private
 	 */
 	_statusChanged(newStatus) {
 		this._status = newStatus;
@@ -259,6 +265,7 @@ export class DrayJob extends EventEmitter {
 	 * Redis connection.
 	 *
 	 * @returns {undefined}
+	 * @private
 	 */
 	_cleanup() {
 		if (this._timeout) {
@@ -276,10 +283,22 @@ export class DrayJob extends EventEmitter {
 	 *
 	 * @param {Object} env Environment object
 	 * @returns {Array} Array accepted by Dray
+	 * @private
 	 */
 	_mapEnvironment(env) {
 		return Object.keys(env).map((key) => {
 			return { variable: key, value: env[key].toString() };
 		});
+	}
+
+	/**
+	 * Create an instance of Redis Client
+	 *
+	 * @param {String} redisUrl Redis URL
+	 * @returns {Redis} Redis Client instance
+	 * @private
+	 */
+	_createRedisClient(redisUrl) {
+		return redis.createClient(redisUrl);
 	}
 }
