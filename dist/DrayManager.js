@@ -28,7 +28,6 @@ var DrayManager = exports.DrayManager = function () {
   * @param {String} drayUrl URL for Dray instance
   * @param {String} redisUrl URL for Redis instance
   */
-
 	function DrayManager(drayUrl, redisUrl) {
 		_classCallCheck(this, DrayManager);
 
@@ -130,8 +129,8 @@ var DrayManager = exports.DrayManager = function () {
 	}, {
 		key: '_request',
 		value: function _request(url) {
-			var method = arguments.length <= 1 || arguments[1] === undefined ? 'get' : arguments[1];
-			var data = arguments.length <= 2 || arguments[2] === undefined ? undefined : arguments[2];
+			var method = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'get';
+			var data = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : undefined;
 
 			return this._agent[method](this._drayUrl + '/' + url, data).end();
 		}

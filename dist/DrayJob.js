@@ -15,6 +15,10 @@ var _redis = require('redis');
 
 var _redis2 = _interopRequireDefault(_redis);
 
+var _TimeoutError = require('./TimeoutError');
+
+var _TimeoutError2 = _interopRequireDefault(_TimeoutError);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -33,11 +37,10 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
   * @param {DrayManager} manager {DrayManager} instance
   * @param {Object} parameters Parameters to set
   */
-
 	function DrayJob(manager, parameters) {
 		_classCallCheck(this, DrayJob);
 
-		var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(DrayJob).call(this));
+		var _this = _possibleConstructorReturn(this, (DrayJob.__proto__ || Object.getPrototypeOf(DrayJob)).call(this));
 
 		_this._manager = manager;
 		_this._steps = [];
@@ -143,24 +146,26 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
 				_this2._reject = reject;
 			});
 			// Connect to Redis
-			this._subscription = _redis2.default.createClient(this._manager._redisUrl);
+			this._subscription = this._createRedisClient(this._manager._redisUrl);
 			// Hook onMessage handler
 			this._subscription.on('pmessage', this._onMessage.bind(this));
 			this._subscription.on('error', function (error) {
-				_this2._onJobFailed('Redis error: ' + error.toString());
+				_this2._onJobFailed(error);
 			});
 
 			// Submit the job...
 			this._manager._submitJob(this).then(function () {
 				// ...and once we know its ID, we can listen for change events
 				_this2._subscription.psubscribe(_this2.id + ':*');
+			}, function (reason) {
+				_this2._onJobFailed(reason);
 			});
 
 			// If job timeout is specified
 			if (timeout) {
 				this._timout = setTimeout(function () {
 					// Fail the job when timeout reached
-					_this2._onJobFailed('Job has timed out');
+					_this2._onJobFailed(new _TimeoutError2.default('Job has timed out'));
 				}, timeout);
 			}
 
@@ -243,13 +248,10 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
 		key: '_onMessage',
 		value: function _onMessage(channel, message, data) {
 			// Message is in "ID:property" format
-
-			var _message$split = message.split(':');
-
-			var _message$split2 = _slicedToArray(_message$split, 2);
-
-			var _ = _message$split2[0];
-			var property = _message$split2[1];
+			var _message$split = message.split(':'),
+			    _message$split2 = _slicedToArray(_message$split, 2),
+			    _ = _message$split2[0],
+			    property = _message$split2[1];
 
 			this.emit(property + 'Changed', data);
 		}
@@ -259,6 +261,7 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
    *
    * @param {Mixed} value Value to resolve the promise with
    * @returns {undefined}
+   * @private
    */
 
 	}, {
@@ -273,6 +276,7 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
    *
    * @param {Mixed} reason Reason to reject the promise with
    * @returns {undefined}
+   * @private
    */
 
 	}, {
@@ -287,6 +291,7 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
    *
    * @param {String} newStatus New job status
    * @returns {undefined}
+   * @private
    */
 
 	}, {
@@ -305,6 +310,7 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
    * Redis connection.
    *
    * @returns {undefined}
+   * @private
    */
 
 	}, {
@@ -325,6 +331,7 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
    *
    * @param {Object} env Environment object
    * @returns {Array} Array accepted by Dray
+   * @private
    */
 
 	}, {
@@ -333,6 +340,20 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
 			return Object.keys(env).map(function (key) {
 				return { variable: key, value: env[key].toString() };
 			});
+		}
+
+		/**
+   * Create an instance of Redis Client
+   *
+   * @param {String} redisUrl Redis URL
+   * @returns {Redis} Redis Client instance
+   * @private
+   */
+
+	}, {
+		key: '_createRedisClient',
+		value: function _createRedisClient(redisUrl) {
+			return _redis2.default.createClient(redisUrl);
 		}
 	}, {
 		key: 'stepsCompleted',

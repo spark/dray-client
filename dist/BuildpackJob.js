@@ -47,13 +47,12 @@ var BuildpackJob = exports.BuildpackJob = function (_DrayJob) {
   * @param {Object} parameters Parameters to set
   * @param {Number} redisExpireIn Expiration time in seconds for output stored in Redis
   */
-
 	function BuildpackJob(manager, parameters) {
-		var redisExpireIn = arguments.length <= 2 || arguments[2] === undefined ? 600 : arguments[2];
+		var redisExpireIn = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 600;
 
 		_classCallCheck(this, BuildpackJob);
 
-		var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(BuildpackJob).call(this, manager, parameters));
+		var _this = _possibleConstructorReturn(this, (BuildpackJob.__proto__ || Object.getPrototypeOf(BuildpackJob)).call(this, manager, parameters));
 
 		_this._redisExpireIn = redisExpireIn;
 		_this._files = [];
@@ -155,7 +154,7 @@ var BuildpackJob = exports.BuildpackJob = function (_DrayJob) {
 				}
 			}
 
-			return new Promise(this._prepareInput.bind(this)).then(_get(Object.getPrototypeOf(BuildpackJob.prototype), 'submit', this).bind(this, timeout)).then(this._onResolved.bind(this), this._onRejected.bind(this));
+			return new Promise(this._prepareInput.bind(this)).then(_get(BuildpackJob.prototype.__proto__ || Object.getPrototypeOf(BuildpackJob.prototype), 'submit', this).bind(this, timeout)).then(this._onResolved.bind(this), this._onRejected.bind(this));
 		}
 
 		/**

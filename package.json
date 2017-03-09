@@ -1,12 +1,10 @@
 {
   "name": "dray-client",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Node.js wrapper for managing Dray jobs",
   "main": "./dist/index.js",
   "scripts": {
-    "itest": "mocha integration/**/*.spec.js -R spec --compilers js:babel-register",
     "lint": "eslint -f unix src/",
-    "compile": "babel src -sd lib/src && babel test -sd lib/test",
     "build": "babel src -sd dist",
     "test": "mocha test/ -R spec --compilers js:babel-register -r babel-polyfill",
     "cover": "babel-node node_modules/.bin/istanbul cover _mocha test/ --report html -- -R spec",
