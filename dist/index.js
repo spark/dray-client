@@ -3,6 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.TimeoutError = undefined;
 
 var _DrayManager = require('./DrayManager');
 
@@ -42,13 +43,9 @@ Object.keys(_BuildpackJob).forEach(function (key) {
 
 var _TimeoutError = require('./TimeoutError');
 
-Object.keys(_TimeoutError).forEach(function (key) {
-  if (key === "default" || key === "__esModule") return;
-  Object.defineProperty(exports, key, {
-    enumerable: true,
-    get: function get() {
-      return _TimeoutError[key];
-    }
-  });
-});
+var _TimeoutError2 = _interopRequireDefault(_TimeoutError);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.TimeoutError = _TimeoutError2.default;
 //# sourceMappingURL=index.js.map

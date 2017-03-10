@@ -135,9 +135,13 @@ export class BuildpackJob extends DrayJob {
 	/**
 	 * Callback for failed compilation.
 	 *
+	 * @param {Object} reason Reason for the rejection
 	 * @return {Promise} Rejected promise with logs
 	 */
-	_onRejected() {
+	_onRejected(reason) {
+		if (reason) {
+			return Promise.reject(reason);
+		}
 		return this.getLogs().then((logs) => {
 			// Because successful `getLogs` call resolves instead of rejecting
 			// we're returning a rejected promise instead

@@ -33,7 +33,7 @@ var TimeoutError = function (_VError) {
 	_createClass(TimeoutError, null, [{
 		key: 'matches',
 		value: function matches(error) {
-			return error.name === this.name;
+			return error.name && error.name === this.name;
 		}
 	}]);
 

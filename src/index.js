@@ -1,4 +1,5 @@
 export * from './DrayManager';
 export * from './DrayJob';
 export * from './BuildpackJob';
-export * from './TimeoutError';
+import TimeoutError from './TimeoutError';
+export { TimeoutError };
