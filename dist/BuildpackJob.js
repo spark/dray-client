@@ -202,12 +202,16 @@ var BuildpackJob = exports.BuildpackJob = function (_DrayJob) {
 		/**
    * Callback for failed compilation.
    *
+   * @param {Object} reason Reason for the rejection
    * @return {Promise} Rejected promise with logs
    */
 
 	}, {
 		key: '_onRejected',
-		value: function _onRejected() {
+		value: function _onRejected(reason) {
+			if (reason) {
+				return Promise.reject(reason);
+			}
 			return this.getLogs().then(function (logs) {
 				// Because successful `getLogs` call resolves instead of rejecting
 				// we're returning a rejected promise instead
