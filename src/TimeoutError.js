@@ -7,7 +7,7 @@ class TimeoutError extends VError {
 	}
 
 	static matches(error) {
-		return error.name === this.name;
+		return error.name && (error.name === this.name);
 	}
 }
 
