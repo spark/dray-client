@@ -1,0 +1,64 @@
+{
+  "name": "dray-client",
+  "version": "0.0.11",
+  "description": "Node.js wrapper for managing Dray jobs",
+  "main": "./dist/index.js",
+  "scripts": {
+    "lint": "eslint -f unix src/",
+    "build": "babel src -sd dist",
+    "test": "mocha test/ -R spec --compilers js:babel-register -r babel-polyfill",
+    "cover": "babel-node node_modules/.bin/istanbul cover _mocha test/ --report html -- -R spec",
+    "cover-es5": "node_modules/.bin/istanbul cover _mocha test/ --report html -- -R spec",
+    "coveralls": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec --compilers js:babel-register test/ && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
+    "prepublish": "npm run build",
+    "docs": "documentation build src/index.js -g -f md -o docs/api.md",
+    "version": "npm run lint && npm run test && npm run build && git add dist/*"
+  },
+  "dependencies": {
+    "archiver": "^1.0.0",
+    "async": "^2.0.0-rc.4",
+    "bluebird": "^3.4.1",
+    "es6-promisify": "^4.0.0",
+    "redis": "^2.6.2",
+    "superagent": "^1.8.3",
+    "superagent-prefix": "0.0.2",
+    "superagent-promise": "^1.1.0",
+    "verror": "^1.9.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.9.0",
+    "babel-eslint": "^6.0.4",
+    "babel-plugin-add-module-exports": "^0.1.2",
+    "babel-plugin-transform-async-to-generator": "^6.8.0",
+    "babel-polyfill": "^6.9.0",
+    "babel-preset-es2015": "^6.6.0",
+    "babel-register": "^6.5.2",
+    "chai": "^3.5.0",
+    "chai-as-promised": "^5.3.0",
+    "chai-things": "^0.2.0",
+    "chalk": "^1.1.3",
+    "concat-stream": "^1.5.1",
+    "coveralls": "^2.11.4",
+    "doctoc": "^0.15.0",
+    "documentation": "^4.0.0-beta5",
+    "eslint": "^2.3.0",
+    "eslint-config-particle": "^1.0.5",
+    "istanbul": "1.0.0-alpha.2",
+    "mocha": "^2.5.1",
+    "mock-fs": "^3.9.0",
+    "should": "^7.1.0",
+    "sinon": "^1.17.4",
+    "sinon-chai": "^2.8.0",
+    "source-map-support": "^0.4.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spark/dray-client.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/spark/dray-client/issues"
+  },
+  "homepage": "https://github.com/spark/dray-client#readme"
+}
