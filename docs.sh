@@ -5,7 +5,7 @@ git clone `git config --get remote.origin.url` $tmpdir
 cd $tmpdir
 git checkout gh-pages
 cd $dir
-node_modules/documentation/bin/documentation.js build src/index.js --shallow --document-exported -f html -o $tmpdir
+node_modules/documentation/bin/documentation.js build src/index.js --document-exported -f html -o $tmpdir
 cd $tmpdir
 git add .
 git -c user.name='Travis CI' -c user.email='bots@particle.io' commit -m 'Update docs'
