@@ -3,6 +3,10 @@ import { EventEmitter } from 'events';
 import redis from 'redis';
 import TimeoutError from './TimeoutError';
 
+/**
+ * Generic Dray job class
+ * @module
+ */
 export class DrayJob extends EventEmitter {
 	/**
 	 * DrayJob class constructor.

@@ -2,6 +2,10 @@ import { DrayJob } from './DrayJob';
 import superagent from 'superagent';
 import superagentPromise from 'superagent-promise';
 
+/**
+ * Main class for managing Dray jobs
+ * @module
+ */
 export class DrayManager {
 	/**
 	 * DrayManager class constructor.
@@ -46,6 +50,7 @@ export class DrayManager {
 	 *
 	 * @param {DrayJob} job Job to submit
 	 * @returns {Promise} Resolves to {DrayJob} if success
+	 * @private
 	 */
 	_submitJob(job) {
 		return this._request('jobs', 'post', job.toJSON()).then((value) => {
@@ -59,6 +64,7 @@ export class DrayManager {
 	 *
 	 * @param {DrayJob} job Job to delete
 	 * @returns {Promise} Resolves with Dray result
+	 * @private
 	 */
 	_deleteJob(job) {
 		return this._request(`jobs/${job.id}`, 'del').then((value) => {
@@ -71,6 +77,7 @@ export class DrayManager {
 	 *
 	 * @param {DrayJob} job Job for which to get logs
 	 * @returns {Promise} Resolves to and {Array} containing logs
+	 * @private
 	 */
 	_getJobLogs(job) {
 		return this._request(`jobs/${job.id}/log`).then((value) => {
@@ -85,6 +92,7 @@ export class DrayManager {
 	 * @param {String} method (optional) HTTP method, defaults to GET
 	 * @param {Mixed}  data (optional) Data to be passed
 	 * @returns {Promise} resolved with request response
+	 * @private
 	 */
 	_request(url, method='get', data=undefined) {
 		return this._agent[method](`${this._drayUrl}/${url}`, data).end();

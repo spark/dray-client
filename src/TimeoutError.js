@@ -1,5 +1,8 @@
 import VError from 'verror';
 
+/**
+ * @module
+ */
 class TimeoutError extends VError {
 	constructor() {
 		super(...arguments);

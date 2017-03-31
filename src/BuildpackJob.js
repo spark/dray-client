@@ -6,6 +6,10 @@ bluebird.promisifyAll(redis.RedisClient.prototype);
 import { PassThrough } from 'stream';
 import { DrayJob } from './DrayJob';
 
+/**
+ * Dray job that uses Particle Buildpacks
+ * @module
+ */
 export class BuildpackJob extends DrayJob {
 	/**
 	 * BuildpackJob class constructor.
@@ -103,6 +107,7 @@ export class BuildpackJob extends DrayJob {
 	 *
 	 * @param {Function} callback Callback when finished
 	 * @returns {Mixed} {undefined} or result of the callback
+	 * @private
 	 */
 	_prepareInput(callback) {
 		// If we have files to compile, archive them first
@@ -119,6 +124,7 @@ export class BuildpackJob extends DrayJob {
 	 * output should be in Redis. This will fetch and return it.
 	 *
 	 * @returns {Promise} Resolved with job output
+	 * @private
 	 */
 	_onResolved() {
 		// Compilation finished.
@@ -137,6 +143,7 @@ export class BuildpackJob extends DrayJob {
 	 *
 	 * @param {Object} reason Reason for the rejection
 	 * @return {Promise} Rejected promise with logs
+	 * @private
 	 */
 	_onRejected(reason) {
 		if (reason) {

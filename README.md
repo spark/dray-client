@@ -56,6 +56,8 @@ compilation.submit().then((binaries) => {
 });
 ```
 
+## [API Reference](http://spark.github.io/dray-client/)
+
 ## Development
 
 ### Releasing

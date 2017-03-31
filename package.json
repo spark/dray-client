@@ -11,7 +11,7 @@
     "cover-es5": "node_modules/.bin/istanbul cover _mocha test/ --report html -- -R spec",
     "coveralls": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec --compilers js:babel-register test/ && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
     "prepublish": "npm run build",
-    "docs": "documentation build src/index.js -g -f md -o docs/api.md",
+    "docs": "./docs.sh",
     "version": "npm run lint && npm run test && npm run build && git add dist/*"
   },
   "dependencies": {
@@ -40,7 +40,7 @@
     "concat-stream": "^1.5.1",
     "coveralls": "^2.11.4",
     "doctoc": "^0.15.0",
-    "documentation": "^4.0.0-beta5",
+    "documentation": "^4.0.0-beta18",
     "eslint": "^2.3.0",
     "eslint-config-particle": "^1.0.5",
     "istanbul": "1.0.0-alpha.2",
