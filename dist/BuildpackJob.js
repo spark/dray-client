@@ -37,6 +37,10 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 _bluebird2.default.promisifyAll(_redis2.default.RedisClient.prototype);
 
+/**
+ * Dray job that uses Particle Buildpacks
+ * @module
+ */
 var BuildpackJob = exports.BuildpackJob = function (_DrayJob) {
 	_inherits(BuildpackJob, _DrayJob);
 
@@ -135,7 +139,7 @@ var BuildpackJob = exports.BuildpackJob = function (_DrayJob) {
 					if (typeof buildpack === 'string') {
 						this.addStep(buildpack, env, undefined, '/output.tar.gz');
 					} else {
-						var args = [buildpack.source, env, buildpack.name, '/output.tar.gz', buildpack.refresh ? buildpack.refresh : undefined, buildpack.networkMode ? buildpack.networkMode : undefined, buildpack.cpuShares ? buildpack.cpuShares : undefined, buildpack.memory ? buildpack.memory : undefined];
+						var args = [buildpack.source, env, buildpack.name, '/output.tar.gz', buildpack.refresh ? buildpack.refresh : undefined, buildpack.networkMode ? buildpack.networkMode : undefined, buildpack.cpuShares ? buildpack.cpuShares : undefined, buildpack.memory ? buildpack.memory : undefined, buildpack.timeout ? buildpack.timeout : undefined];
 						this.addStep.apply(this, args);
 					}
 				}
@@ -162,6 +166,7 @@ var BuildpackJob = exports.BuildpackJob = function (_DrayJob) {
    *
    * @param {Function} callback Callback when finished
    * @returns {Mixed} {undefined} or result of the callback
+   * @private
    */
 
 	}, {
@@ -183,6 +188,7 @@ var BuildpackJob = exports.BuildpackJob = function (_DrayJob) {
    * output should be in Redis. This will fetch and return it.
    *
    * @returns {Promise} Resolved with job output
+   * @private
    */
 
 	}, {
@@ -204,6 +210,7 @@ var BuildpackJob = exports.BuildpackJob = function (_DrayJob) {
    *
    * @param {Object} reason Reason for the rejection
    * @return {Promise} Rejected promise with logs
+   * @private
    */
 
 	}, {

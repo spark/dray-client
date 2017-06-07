@@ -21,6 +21,10 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+/**
+ * Main class for managing Dray jobs
+ * @module
+ */
 var DrayManager = exports.DrayManager = function () {
 	/**
   * DrayManager class constructor.
@@ -76,6 +80,7 @@ var DrayManager = exports.DrayManager = function () {
    *
    * @param {DrayJob} job Job to submit
    * @returns {Promise} Resolves to {DrayJob} if success
+   * @private
    */
 
 	}, {
@@ -92,6 +97,7 @@ var DrayManager = exports.DrayManager = function () {
    *
    * @param {DrayJob} job Job to delete
    * @returns {Promise} Resolves with Dray result
+   * @private
    */
 
 	}, {
@@ -107,6 +113,7 @@ var DrayManager = exports.DrayManager = function () {
    *
    * @param {DrayJob} job Job for which to get logs
    * @returns {Promise} Resolves to and {Array} containing logs
+   * @private
    */
 
 	}, {
@@ -124,6 +131,7 @@ var DrayManager = exports.DrayManager = function () {
    * @param {String} method (optional) HTTP method, defaults to GET
    * @param {Mixed}  data (optional) Data to be passed
    * @returns {Promise} resolved with request response
+   * @private
    */
 
 	}, {

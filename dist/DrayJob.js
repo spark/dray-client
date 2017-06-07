@@ -28,6 +28,10 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /*eslint-disable curly */
 
 
+/**
+ * Generic Dray job class
+ * @module
+ */
 var DrayJob = exports.DrayJob = function (_EventEmitter) {
 	_inherits(DrayJob, _EventEmitter);
 
@@ -113,16 +117,18 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
    * @param {String} networkMode (optional) Network mode for this container
    * @param {Number} cpuShares (optional) Container's CPU shares
    * @param {Number} memory (optional) Memory limit in bytes
+   * @param {Number} timeout (optional) Step timeout in seconds
    * @returns {this} this object
    */
 
 	}, {
 		key: 'addStep',
-		value: function addStep(source, environment, name, output, refresh, networkMode, cpuShares, memory) {
+		value: function addStep(source, environment, name, output, refresh, networkMode, cpuShares, memory, timeout) {
 			var step = { source: source, environment: environment, name: name, output: output, refresh: refresh };
 			if (networkMode) step.networkMode = networkMode;
 			if (cpuShares) step.cpuShares = cpuShares;
 			if (memory) step.memory = memory;
+			if (timeout) step.timeout = timeout;
 
 			this._steps.push(step);
 			return this;
