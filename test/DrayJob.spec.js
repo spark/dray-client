@@ -49,7 +49,7 @@ describe('DrayJob', () => {
 			});
 			job.addStep('scratch', {
 				BAR: 'BAZ'
-			}, 'step1', 'output.txt', true, 'host', 1, 2);
+			}, 'step1', 'output.txt', true, 'host', 1, 2, 10);
 
 			expect(JSON.parse(job.toJSON())).to.eql({
 				steps: [{
@@ -62,7 +62,8 @@ describe('DrayJob', () => {
 					refresh: true,
 					networkMode: 'host',
 					cpuShares: 1,
-					memory: 2
+					memory: 2,
+					timeout: 10
 				}],
 				name: 'foo',
 				environment: [

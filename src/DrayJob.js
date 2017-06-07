@@ -106,13 +106,15 @@ export class DrayJob extends EventEmitter {
 	 * @param {String} networkMode (optional) Network mode for this container
 	 * @param {Number} cpuShares (optional) Container's CPU shares
 	 * @param {Number} memory (optional) Memory limit in bytes
+	 * @param {Number} timeout (optional) Step timeout in seconds
 	 * @returns {this} this object
 	 */
-	addStep(source, environment, name, output, refresh, networkMode, cpuShares, memory) {
+	addStep(source, environment, name, output, refresh, networkMode, cpuShares, memory, timeout) {
 		let step = { source, environment, name, output, refresh };
 		if (networkMode) step.networkMode = networkMode;
 		if (cpuShares) step.cpuShares = cpuShares;
 		if (memory) step.memory = memory;
+		if (timeout) step.timeout = timeout;
 
 		this._steps.push(step);
 		return this;
