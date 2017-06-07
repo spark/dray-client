@@ -68,7 +68,8 @@ describe('BuildpackJob', () => {
 				source: 'foo',
 				networkMode: 'host',
 				cpuShares: 1,
-				memory: 2
+				memory: 2,
+				timeout: 10
 			}]);
 			job.submit();
 			expect(job._steps).to.have.length.of(2);
@@ -83,7 +84,8 @@ describe('BuildpackJob', () => {
 				source: 'foo',
 				networkMode: 'host',
 				cpuShares: 1,
-				memory: 2
+				memory: 2,
+				timeout: 10
 			});
 
 			sandbox.restore();

@@ -90,7 +90,8 @@ export class BuildpackJob extends DrayJob {
 					buildpack.refresh ? buildpack.refresh : undefined,
 					buildpack.networkMode ? buildpack.networkMode : undefined,
 					buildpack.cpuShares ? buildpack.cpuShares : undefined,
-					buildpack.memory ? buildpack.memory : undefined
+					buildpack.memory ? buildpack.memory : undefined,
+					buildpack.timeout ? buildpack.timeout : undefined
 				];
 				this.addStep.apply(this, args);
 			}
