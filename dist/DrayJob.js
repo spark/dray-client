@@ -49,9 +49,11 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
 		_this._manager = manager;
 		_this._steps = [];
 		_this._environment = {};
+		_this._profiler = [];
 		_this.setParameters(parameters);
 
 		_this.on('statusChanged', _this._statusChanged.bind(_this));
+		_this.on('completedStepsChanged', _this._stepCompleted.bind(_this));
 		return _this;
 	}
 
@@ -161,6 +163,7 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
 
 			// Submit the job...
 			this._manager._submitJob(this).then(function () {
+				_this2._lastTiming = Date.now();
 				// ...and once we know its ID, we can listen for change events
 				_this2._subscription.psubscribe(_this2.id + ':*');
 			}, function (reason) {
@@ -288,6 +291,9 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
 	}, {
 		key: '_onJobFailed',
 		value: function _onJobFailed(reason) {
+			// Add last profiling frame
+			this._addProfilerFrame(this._stepsCompleted, 'error');
+
 			this._reject(reason);
 			this._cleanup();
 		}
@@ -309,6 +315,21 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
 			} else if (this._status === 'error') {
 				this._onJobFailed();
 			}
+		}
+
+		/**
+   * Callback for a job step completed
+   *
+   * @param {String} index One based step index
+   * @returns {undefined}
+   * @private
+   */
+
+	}, {
+		key: '_stepCompleted',
+		value: function _stepCompleted(index) {
+			this._stepsCompleted = index;
+			this._addProfilerFrame(this._stepsCompleted - 1);
 		}
 
 		/**
@@ -361,6 +382,28 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
 		value: function _createRedisClient(redisUrl) {
 			return _redis2.default.createClient(redisUrl);
 		}
+
+		/**
+   * Creates a timing data frame in internal profiler
+   *
+   * @param {Number} index  Step index
+   * @param {String} status Status of the step
+   * @returns {undefined}
+   * @private
+   */
+
+	}, {
+		key: '_addProfilerFrame',
+		value: function _addProfilerFrame(index) {
+			var status = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'complete';
+
+			this._profiler.push({
+				step: this._steps[index],
+				elapsed: Date.now() - this._lastTiming,
+				status: status
+			});
+			this._lastTiming = Date.now();
+		}
 	}, {
 		key: 'stepsCompleted',
 		get: function get() {
@@ -402,6 +445,18 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
 		key: 'finishedIn',
 		get: function get() {
 			return this._finishedIn;
+		}
+
+		/**
+   * Job profile data
+   *
+   * @returns {Array} List of steps and their timings
+   */
+
+	}, {
+		key: 'profiler',
+		get: function get() {
+			return this._profiler;
 		}
 	}]);
 
