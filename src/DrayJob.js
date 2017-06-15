@@ -19,9 +19,11 @@ export class DrayJob extends EventEmitter {
 		this._manager = manager;
 		this._steps = [];
 		this._environment = {};
+		this._profiler = [];
 		this.setParameters(parameters);
 
 		this.on('statusChanged', this._statusChanged.bind(this));
+		this.on('completedStepsChanged', this._stepCompleted.bind(this));
 	}
 
 	/**
@@ -60,6 +62,15 @@ export class DrayJob extends EventEmitter {
 	 */
 	get finishedIn() {
 		return this._finishedIn;
+	}
+
+	/**
+	 * Job profile data
+	 *
+	 * @returns {Array} List of steps and their timings
+	 */
+	get profiler() {
+		return this._profiler;
 	}
 
 	/**
@@ -142,6 +153,7 @@ export class DrayJob extends EventEmitter {
 
 		// Submit the job...
 		this._manager._submitJob(this).then(() => {
+			this._lastTiming = Date.now();
 			// ...and once we know its ID, we can listen for change events
 			this._subscription.psubscribe(`${this.id}:*`);
 		}, (reason) => {
@@ -246,6 +258,9 @@ export class DrayJob extends EventEmitter {
 	 * @private
 	 */
 	_onJobFailed(reason) {
+		// Add last profiling frame
+		this._addProfilerFrame(this._stepsCompleted, 'error');
+
 		this._reject(reason);
 		this._cleanup();
 	}
@@ -264,6 +279,18 @@ export class DrayJob extends EventEmitter {
 		} else if (this._status === 'error') {
 			this._onJobFailed();
 		}
+	}
+
+	/**
+	 * Callback for a job step completed
+	 *
+	 * @param {String} index One based step index
+	 * @returns {undefined}
+	 * @private
+	 */
+	_stepCompleted(index) {
+		this._stepsCompleted = index;
+		this._addProfilerFrame(this._stepsCompleted-1);
 	}
 
 	/**
@@ -306,5 +333,22 @@ export class DrayJob extends EventEmitter {
 	 */
 	_createRedisClient(redisUrl) {
 		return redis.createClient(redisUrl);
+	}
+
+	/**
+	 * Creates a timing data frame in internal profiler
+	 *
+	 * @param {Number} index  Step index
+	 * @param {String} status Status of the step
+	 * @returns {undefined}
+	 * @private
+	 */
+	_addProfilerFrame(index, status='complete') {
+		this._profiler.push({
+			step: this._steps[index],
+			elapsed: Date.now() - this._lastTiming,
+			status: status
+		});
+		this._lastTiming = Date.now();
 	}
 }
