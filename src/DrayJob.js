@@ -20,6 +20,7 @@ export class DrayJob extends EventEmitter {
 		this._steps = [];
 		this._environment = {};
 		this._profiler = [];
+		this._stepsCompleted = 0;
 		this.setParameters(parameters);
 
 		this.on('statusChanged', this._statusChanged.bind(this));

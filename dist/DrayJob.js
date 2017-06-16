@@ -50,6 +50,7 @@ var DrayJob = exports.DrayJob = function (_EventEmitter) {
 		_this._steps = [];
 		_this._environment = {};
 		_this._profiler = [];
+		_this._stepsCompleted = 0;
 		_this.setParameters(parameters);
 
 		_this.on('statusChanged', _this._statusChanged.bind(_this));
