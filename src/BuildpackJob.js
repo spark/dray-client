@@ -60,7 +60,6 @@ export class BuildpackJob extends DrayJob {
 	 */
 	setBuildpacks(buildpacks) {
 		this._buildpacks = buildpacks;
-		this._buildpacks.push('particle/buildpack-store');
 		return this;
 	}
 

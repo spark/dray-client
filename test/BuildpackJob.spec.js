@@ -26,10 +26,10 @@ describe('BuildpackJob', () => {
 	});
 
 	describe('setting buildpacks', () => {
-		it('appends storing one', () => {
+		it('does not append the storing one', () => {
 			let job = new BuildpackJob();
 			job.setBuildpacks(['foo', 'bar']);
-			expect(job._buildpacks).to.have.length.of(3);
+			expect(job._buildpacks).to.have.length.of(2);
 			expect(job._buildpacks[0]).to.equal('foo');
 		});
 	});
@@ -44,7 +44,7 @@ describe('BuildpackJob', () => {
 			let job = new BuildpackJob();
 			job.setBuildpacks(['foo']);
 			job.submit();
-			expect(job._steps).to.have.length.of(2);
+			expect(job._steps).to.have.length.of(1);
 			expect(job._steps[0]).to.eql({
 				environment: {
 					ARCHIVE_OUTPUT: true,
@@ -72,7 +72,7 @@ describe('BuildpackJob', () => {
 				timeout: 10
 			}]);
 			job.submit();
-			expect(job._steps).to.have.length.of(2);
+			expect(job._steps).to.have.length.of(1);
 			expect(job._steps[0]).to.eql({
 				environment: {
 					ARCHIVE_OUTPUT: true,
