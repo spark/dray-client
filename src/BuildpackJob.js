@@ -2,6 +2,9 @@ import archiver from 'archiver';
 import redis from 'redis';
 import bluebird from 'bluebird';
 bluebird.promisifyAll(redis.RedisClient.prototype);
+import gunzip from 'gunzip-maybe';
+import tar from 'tar-stream';
+import { Duplex } from 'stream';
 
 import { PassThrough } from 'stream';
 import { DrayJob } from './DrayJob';
@@ -112,7 +115,7 @@ export class BuildpackJob extends DrayJob {
 	_prepareInput(callback) {
 		// If we have files to compile, archive them first
 		if (this._files.length > 0) {
-			return callback(this._archiveFiles().then((archive) => {
+			return callback(this._archiveFiles(this._files).then((archive) => {
 				this.setInput(archive);
 			}));
 		}
@@ -131,11 +134,18 @@ export class BuildpackJob extends DrayJob {
 		let client = redis.createClient(this._manager._redisUrl, {
 			'return_buffers': true
 		});
-		return client.hgetallAsync(this.id).then((output) => {
+		return client.getAsync(`jobs:${this.id}:output`).then((output) => {
+			// Unpack the output
+			if (output) {
+				let promise = this._unarchiveFiles(output);
+				promise.then(() => client.quit(), () => client.quit());
+				return promise;
+			}
+
 			client.quit();
-			// Return the output
+			// Return the empty output
 			return output;
-		});
+		}, (reason) => reason);
 	}
 
 	/**
@@ -159,10 +169,11 @@ export class BuildpackJob extends DrayJob {
 	/**
 	 * Create tar.gz archive from files
 	 *
-	 * @returns {Buffer} archived files
+	 * @param {Array} files An array of files to archive
+	 * @returns {Promise} A promise resolved with a {Buffer} containing the archive
 	 * @private
 	 */
-	_archiveFiles() {
+	_archiveFiles(files) {
 		// Defer promise
 		let _resolve, _reject;
 		let promise = new Promise((resolve, reject) => {
@@ -187,10 +198,69 @@ export class BuildpackJob extends DrayJob {
 		archive.pipe(stream);
 
 		// Append all files
-		for (let file of this._files) {
+		for (let file of files) {
 			archive.append(file.data, file);
 		}
 		archive.finalize();
 		return promise;
+	}
+
+	/**
+	 * Turn a typed array to stream
+	 *
+	 * @param {UInt8Array} array Array to convert
+	 * @returns {Stream} Converted stream
+	 * @private
+	 */
+	_typedArrayToStream(array) {
+		const duplex = new Duplex();
+		duplex.push(array);
+		duplex.push(null);
+
+		return duplex;
+	}
+
+	/**
+	 * Untar tar.gz compressed output
+	 *
+	 * @param {UInt8Array} archive Typed array containing .tar.gz archive
+	 * @returns {Promise} Promise resolved with the files
+	 * @private
+	 */
+	_unarchiveFiles(archive) {
+		return new Promise((resolve, reject) => {
+			const extract = tar.extract();
+			const duplex = this._typedArrayToStream(archive);
+			let files = {};
+
+			extract.on('entry', (header, stream, next) => {
+				if (header.type !== 'file') {
+					next();
+					return;
+				}
+
+				const filename = header.name.replace('./', '');
+				files[filename] = [];
+
+				stream.on('data', (chunk) => {
+					files[filename].push(chunk);
+				});
+
+				stream.on('end', () => {
+					files[filename] = Buffer.concat(files[filename]);
+					next();
+				});
+
+				stream.resume();
+			});
+
+			extract.on('finish', () => {
+				resolve(files);
+			});
+
+			extract.on('error', (error) => reject(error));
+
+			duplex.pipe(gunzip()).pipe(extract);
+		});
 	}
 }

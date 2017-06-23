@@ -21,6 +21,14 @@ var _bluebird = require('bluebird');
 
 var _bluebird2 = _interopRequireDefault(_bluebird);
 
+var _gunzipMaybe = require('gunzip-maybe');
+
+var _gunzipMaybe2 = _interopRequireDefault(_gunzipMaybe);
+
+var _tarStream = require('tar-stream');
+
+var _tarStream2 = _interopRequireDefault(_tarStream);
+
 var _stream = require('stream');
 
 var _DrayJob2 = require('./DrayJob');
@@ -107,7 +115,6 @@ var BuildpackJob = exports.BuildpackJob = function (_DrayJob) {
 		key: 'setBuildpacks',
 		value: function setBuildpacks(buildpacks) {
 			this._buildpacks = buildpacks;
-			this._buildpacks.push('particle/buildpack-store');
 			return this;
 		}
 
@@ -176,7 +183,7 @@ var BuildpackJob = exports.BuildpackJob = function (_DrayJob) {
 
 			// If we have files to compile, archive them first
 			if (this._files.length > 0) {
-				return callback(this._archiveFiles().then(function (archive) {
+				return callback(this._archiveFiles(this._files).then(function (archive) {
 					_this2.setInput(archive);
 				}));
 			}
@@ -194,14 +201,29 @@ var BuildpackJob = exports.BuildpackJob = function (_DrayJob) {
 	}, {
 		key: '_onResolved',
 		value: function _onResolved() {
+			var _this3 = this;
+
 			// Compilation finished.
 			var client = _redis2.default.createClient(this._manager._redisUrl, {
 				'return_buffers': true
 			});
-			return client.hgetallAsync(this.id).then(function (output) {
+			return client.getAsync('jobs:' + this.id + ':output').then(function (output) {
+				// Unpack the output
+				if (output) {
+					var promise = _this3._unarchiveFiles(output);
+					promise.then(function () {
+						return client.quit();
+					}, function () {
+						return client.quit();
+					});
+					return promise;
+				}
+
 				client.quit();
-				// Return the output
+				// Return the empty output
 				return output;
+			}, function (reason) {
+				return reason;
 			});
 		}
 
@@ -229,13 +251,14 @@ var BuildpackJob = exports.BuildpackJob = function (_DrayJob) {
 		/**
    * Create tar.gz archive from files
    *
-   * @returns {Buffer} archived files
+   * @param {Array} files An array of files to archive
+   * @returns {Promise} A promise resolved with a {Buffer} containing the archive
    * @private
    */
 
 	}, {
 		key: '_archiveFiles',
-		value: function _archiveFiles() {
+		value: function _archiveFiles(files) {
 			// Defer promise
 			var _resolve = void 0,
 			    _reject = void 0;
@@ -266,7 +289,7 @@ var BuildpackJob = exports.BuildpackJob = function (_DrayJob) {
 			var _iteratorError2 = undefined;
 
 			try {
-				for (var _iterator2 = this._files[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+				for (var _iterator2 = files[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
 					var file = _step2.value;
 
 					archive.append(file.data, file);
@@ -288,6 +311,75 @@ var BuildpackJob = exports.BuildpackJob = function (_DrayJob) {
 
 			archive.finalize();
 			return promise;
+		}
+
+		/**
+   * Turn a typed array to stream
+   *
+   * @param {UInt8Array} array Array to convert
+   * @returns {Stream} Converted stream
+   * @private
+   */
+
+	}, {
+		key: '_typedArrayToStream',
+		value: function _typedArrayToStream(array) {
+			var duplex = new _stream.Duplex();
+			duplex.push(array);
+			duplex.push(null);
+
+			return duplex;
+		}
+
+		/**
+   * Untar tar.gz compressed output
+   *
+   * @param {UInt8Array} output Typed array containing .tar.gz archive
+   * @returns {Promise} Promise resolved with the files
+   * @private
+   */
+
+	}, {
+		key: '_unarchiveFiles',
+		value: function _unarchiveFiles(archive) {
+			var _this4 = this;
+
+			return new Promise(function (resolve, reject) {
+				var extract = _tarStream2.default.extract();
+				var duplex = _this4._typedArrayToStream(archive);
+				var files = {};
+
+				extract.on('entry', function (header, stream, next) {
+					if (header.type !== 'file') {
+						next();
+						return;
+					}
+
+					var filename = header.name.replace('./', '');
+					files[filename] = [];
+
+					stream.on('data', function (chunk) {
+						files[filename].push(chunk);
+					});
+
+					stream.on('end', function () {
+						files[filename] = Buffer.concat(files[filename]);
+						next();
+					});
+
+					stream.resume();
+				});
+
+				extract.on('finish', function () {
+					resolve(files);
+				});
+
+				extract.on('error', function (error) {
+					return reject(error);
+				});
+
+				duplex.pipe((0, _gunzipMaybe2.default)()).pipe(extract);
+			});
 		}
 	}]);
 

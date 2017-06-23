@@ -93,16 +93,16 @@ describe('BuildpackJob', () => {
 	});
 
 	describe('archiving files', () => {
-		let compilation;
+		let job;
 
 		before(() => {
-			compilation = new BuildpackJob();
-			compilation._manager = {
+			job = new BuildpackJob();
+			job._manager = {
 				_submitJob: sinon.stub().returns(Promise.resolve())
 			};
-			compilation.setInput = sinon.stub();
+			job.setInput = sinon.stub();
 
-			compilation.addFiles([{
+			job.addFiles([{
 				name: 'blink.ino',
 				data: fs.readFileSync(`${__dirname}/data/blink.ino`),
 				date: new Date('2016-06-29T13:56:52.201Z')
@@ -115,7 +115,19 @@ describe('BuildpackJob', () => {
 
 		it('creates tar.gz archive', () => {
 			let tgz = fs.readFileSync(`${__dirname}/data/archive.tar.gz`);
-			return expect(compilation._archiveFiles()).to.eventually.deep.equal(tgz);
+			return expect(job._archiveFiles(job._files)).to.eventually.deep.equal(tgz);
+		});
+	});
+
+	describe('unarchiving files', function(){
+		it('unpacks the archive', function(){
+			let job = new BuildpackJob();
+			let archive = fs.readFileSync(`${__dirname}/data/archive.tar.gz`);
+			let result = {
+				'blink.ino': fs.readFileSync(`${__dirname}/data/blink.ino`),
+				'inc/foo.h': fs.readFileSync(`${__dirname}/data/inc/foo.h`)
+			};
+			return expect(job._unarchiveFiles(archive)).to.eventually.deep.equal(result);
 		});
 	});
 });
