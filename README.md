@@ -63,5 +63,6 @@ compilation.submit().then((binaries) => {
 ### Releasing
 
 1. Prebuid `dist` directory using `npm build`
-2. Bump version in `package.json`
-3. Commit and tag
+2. Bump version with `npm version <major|minor|patch>`
+3. Push the repo
+4. Publish on npm: `npm publish`
