@@ -334,7 +334,7 @@ var BuildpackJob = exports.BuildpackJob = function (_DrayJob) {
 		/**
    * Untar tar.gz compressed output
    *
-   * @param {UInt8Array} output Typed array containing .tar.gz archive
+   * @param {UInt8Array} archive Typed array containing .tar.gz archive
    * @returns {Promise} Promise resolved with the files
    * @private
    */
