@@ -55,12 +55,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/spark/dray-client.git"
+    "url": "git+https://github.com/particle-iot/dray-client.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/spark/dray-client/issues"
+    "url": "https://github.com/particle-iot/dray-client/issues"
   },
-  "homepage": "https://github.com/spark/dray-client#readme"
+  "homepage": "https://github.com/particle-iot/dray-client#readme"
 }
